@@ -1,0 +1,46 @@
+{
+ "headline": "rongorongo is not a plain syllabic substitution of chant-register Rapa Nui",
+ "corpus": {
+  "glyph_tokens": 14572,
+  "distinct_signs": 241,
+  "signs_covering_90pct": 41,
+  "taxograms_removed": [
+   "200",
+   "400"
+  ],
+  "analyzed_tokens": 11969
+ },
+ "unicity": {
+  "key_bits": 209,
+  "redundancy_bits_per_syll": 2.08,
+  "unicity_distance_symbols": 100,
+  "corpus_multiple_of_unicity": 120
+ },
+ "control_syllabic": {
+  "tokens": 3457,
+  "key_recovery": "48/48 symbols, 100% tokens, all seeds"
+ },
+ "rongorongo_syllabic": {
+  "z_vs_random": 9.8,
+  "chain_agreement": "2/49 glyphs (7 chains)",
+  "lexical_emergence_z": 0.4,
+  "verdict": "hypothesis rejected"
+ },
+ "compression_bias": {
+  "finding": "MLE prefers shorter emissions; all 8 planted logograms scored below wrong 1-syllable readings",
+  "fix": "word-segmentation scoring + one-word-per-glyph + MDL penalty (partial)"
+ },
+ "control_logosyllabic": {
+  "tokens": 3291,
+  "syllable_key": "~63-79% of tokens",
+  "logograms": "5/8 detected, 1/8 exact",
+  "verdict": "only partially identifiable"
+ },
+ "stable_phonetic_core": {
+  "003": "i",
+  "010": "u",
+  "002": "ka",
+  "730": "tu",
+  "note": "glyphs 001/006 behave as vowels; observations, not readings"
+ }
+}

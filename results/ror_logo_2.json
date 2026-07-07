@@ -1,0 +1,205 @@
+{
+ "seed": 2,
+ "iters": 120000,
+ "n_glyph_tokens": 11742,
+ "logp_per_token": -3.9711755314408164,
+ "n_logograms": 19,
+ "mapping": {
+  "006": {
+   "type": "syll",
+   "value": "e"
+  },
+  "003": {
+   "type": "syll",
+   "value": "i"
+  },
+  "001": {
+   "type": "syll",
+   "value": "a"
+  },
+  "010": {
+   "type": "syll",
+   "value": "u"
+  },
+  "002": {
+   "type": "syll",
+   "value": "ka"
+  },
+  "004": {
+   "type": "syll",
+   "value": "ko"
+  },
+  "700": {
+   "type": "syll",
+   "value": "te"
+  },
+  "022": {
+   "type": "syll",
+   "value": "nu"
+  },
+  "062": {
+   "type": "syll",
+   "value": "ra"
+  },
+  "061": {
+   "type": "logo",
+   "value": "ai"
+  },
+  "660": {
+   "type": "syll",
+   "value": "o"
+  },
+  "009": {
+   "type": "syll",
+   "value": "ta"
+  },
+  "008": {
+   "type": "syll",
+   "value": "re"
+  },
+  "041": {
+   "type": "syll",
+   "value": "ha"
+  },
+  "280": {
+   "type": "syll",
+   "value": "ki"
+  },
+  "005": {
+   "type": "syll",
+   "value": "ma"
+  },
+  "730": {
+   "type": "syll",
+   "value": "tu"
+  },
+  "066": {
+   "type": "syll",
+   "value": "na"
+  },
+  "045": {
+   "type": "syll",
+   "value": "ga"
+  },
+  "063": {
+   "type": "syll",
+   "value": "ri"
+  },
+  "007": {
+   "type": "syll",
+   "value": "ro"
+  },
+  "044": {
+   "type": "logo",
+   "value": "nui"
+  },
+  "069": {
+   "type": "syll",
+   "value": "mo"
+  },
+  "901": {
+   "type": "syll",
+   "value": "ku"
+  },
+  "067": {
+   "type": "syll",
+   "value": "to"
+  },
+  "095": {
+   "type": "syll",
+   "value": "ne"
+  },
+  "050": {
+   "type": "syll",
+   "value": "he"
+  },
+  "059": {
+   "type": "logo",
+   "value": "ika"
+  },
+  "074": {
+   "type": "logo",
+   "value": "ana"
+  },
+  "099": {
+   "type": "syll",
+   "value": "ru"
+  },
+  "070": {
+   "type": "syll",
+   "value": "hi"
+  },
+  "091": {
+   "type": "logo",
+   "value": "tua"
+  },
+  "027": {
+   "type": "logo",
+   "value": "au"
+  },
+  "052": {
+   "type": "logo",
+   "value": "ia"
+  },
+  "260": {
+   "type": "logo",
+   "value": "tau"
+  },
+  "076": {
+   "type": "logo",
+   "value": "tagi"
+  },
+  "060": {
+   "type": "logo",
+   "value": "mata"
+  },
+  "073": {
+   "type": "syll",
+   "value": "vi"
+  },
+  "053": {
+   "type": "logo",
+   "value": "kai"
+  },
+  "021": {
+   "type": "logo",
+   "value": "koe"
+  },
+  "054": {
+   "type": "logo",
+   "value": "tuu"
+  },
+  "450": {
+   "type": "logo",
+   "value": "ua"
+  },
+  "740": {
+   "type": "logo",
+   "value": "atu"
+  },
+  "034": {
+   "type": "syll",
+   "value": "pu"
+  },
+  "025": {
+   "type": "logo",
+   "value": "mai"
+  },
+  "047": {
+   "type": "logo",
+   "value": "vai"
+  },
+  "028": {
+   "type": "syll",
+   "value": "ti"
+  },
+  "230": {
+   "type": "logo",
+   "value": "ariki"
+  },
+  "015": {
+   "type": "logo",
+   "value": "era"
+  }
+ }
+}

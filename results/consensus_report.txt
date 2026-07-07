@@ -1,0 +1,56 @@
+glyph | seed1     | seed2     | seed3     | agree
+ 006  | s:a       | s:e       | s:a       | 2/3
+ 003  | s:i       | s:i       | s:i       | FULL
+ 001  | s:e       | s:a       | s:e       | 2/3
+ 010  | s:u       | s:u       | s:u       | FULL
+ 002  | s:ka      | s:ka      | s:ka      | FULL
+ 004  | s:te      | s:ko      | s:ki      | -
+ 700  | s:ha      | s:te      | s:te      | 2/3
+ 022  | s:ma      | s:nu      | s:ma      | 2/3
+ 062  | s:ri      | s:ra      | s:ta      | -
+ 061  | s:ro      | l:ai      | s:va      | -
+ 660  | s:ta      | s:o       | s:re      | -
+ 009  | s:o       | s:ta      | s:ha      | -
+ 008  | s:ki      | s:re      | s:ko      | -
+ 041  | s:re      | s:ha      | s:mo      | -
+ 280  | s:ko      | s:ki      | s:ra      | -
+ 005  | s:ra      | s:ma      | s:he      | -
+ 730  | s:tu      | s:tu      | s:tu      | FULL
+ 066  | s:ga      | s:na      | s:o       | -
+ 045  | s:va      | s:ga      | s:ro      | -
+ 063  | s:na      | s:ri      | s:na      | 2/3
+ 007  | l:nui     | s:ro      | s:ho      | -
+ 044  | s:he      | l:nui     | s:to      | -
+ 069  | s:ru      | s:mo      | s:pa      | -
+ 901  | s:hi      | s:ku      | s:ga      | -
+ 067  | s:to      | s:to      | s:ru      | 2/3
+ 095  | s:nu      | s:ne      | s:nu      | 2/3
+ 050  | s:ho      | s:he      | s:hu      | -
+ 059  | s:ne      | l:ika     | s:ne      | 2/3
+ 074  | s:mo      | l:ana     | s:ri      | -
+ 099  | l:ai      | s:ru      | s:ku      | -
+ 070  | l:kai     | s:hi      | l:ika     | -
+ 091  | s:ti      | l:tua     | l:nui     | -
+ 027  | s:ke      | l:au      | l:ua      | -
+ 052  | l:tagi    | l:ia      | l:koe     | -
+ 260  | l:au      | l:tau     | l:au      | 2/3
+ 076  | l:vai     | l:tagi    | s:ke      | -
+ 060  | l:ika     | l:mata    | l:tagi    | -
+ 073  | s:me      | s:vi      | s:me      | 2/3
+ 053  | l:uka     | l:kai     | l:vai     | -
+ 021  | l:ana     | l:koe     | l:roa     | -
+ 054  | l:ua      | l:tuu     | l:mai     | -
+ 450  | l:tuu     | l:ua      | l:kai     | -
+ 740  | s:mi      | l:atu     | s:hi      | -
+ 034  | l:mata    | s:pu      | s:pu      | 2/3
+ 025  | s:pu      | l:mai     | l:ai      | -
+ 047  | l:era     | l:vai     | l:tuu     | -
+ 028  | l:koe     | s:ti      | s:po      | -
+ 230  | l:mai     | l:ariki   | l:era     | -
+ 015  | s:go      | l:era     | l:ia      | -
+
+Full 3-chain agreement: 4/49
+Consensus SYLLABLES: [('003', 's:i'), ('010', 's:u'), ('002', 's:ka'), ('730', 's:tu')]
+Consensus LOGOGRAMS: []
+
+Glyph 041 (Mamari crescent): [{'type': 'syll', 'value': 're'}, {'type': 'syll', 'value': 'ha'}, {'type': 'syll', 'value': 'mo'}]

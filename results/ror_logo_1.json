@@ -1,0 +1,205 @@
+{
+ "seed": 1,
+ "iters": 120000,
+ "n_glyph_tokens": 11742,
+ "logp_per_token": -3.8948970506990284,
+ "n_logograms": 15,
+ "mapping": {
+  "006": {
+   "type": "syll",
+   "value": "a"
+  },
+  "003": {
+   "type": "syll",
+   "value": "i"
+  },
+  "001": {
+   "type": "syll",
+   "value": "e"
+  },
+  "010": {
+   "type": "syll",
+   "value": "u"
+  },
+  "002": {
+   "type": "syll",
+   "value": "ka"
+  },
+  "004": {
+   "type": "syll",
+   "value": "te"
+  },
+  "700": {
+   "type": "syll",
+   "value": "ha"
+  },
+  "022": {
+   "type": "syll",
+   "value": "ma"
+  },
+  "062": {
+   "type": "syll",
+   "value": "ri"
+  },
+  "061": {
+   "type": "syll",
+   "value": "ro"
+  },
+  "660": {
+   "type": "syll",
+   "value": "ta"
+  },
+  "009": {
+   "type": "syll",
+   "value": "o"
+  },
+  "008": {
+   "type": "syll",
+   "value": "ki"
+  },
+  "041": {
+   "type": "syll",
+   "value": "re"
+  },
+  "280": {
+   "type": "syll",
+   "value": "ko"
+  },
+  "005": {
+   "type": "syll",
+   "value": "ra"
+  },
+  "730": {
+   "type": "syll",
+   "value": "tu"
+  },
+  "066": {
+   "type": "syll",
+   "value": "ga"
+  },
+  "045": {
+   "type": "syll",
+   "value": "va"
+  },
+  "063": {
+   "type": "syll",
+   "value": "na"
+  },
+  "007": {
+   "type": "logo",
+   "value": "nui"
+  },
+  "044": {
+   "type": "syll",
+   "value": "he"
+  },
+  "069": {
+   "type": "syll",
+   "value": "ru"
+  },
+  "901": {
+   "type": "syll",
+   "value": "hi"
+  },
+  "067": {
+   "type": "syll",
+   "value": "to"
+  },
+  "095": {
+   "type": "syll",
+   "value": "nu"
+  },
+  "050": {
+   "type": "syll",
+   "value": "ho"
+  },
+  "059": {
+   "type": "syll",
+   "value": "ne"
+  },
+  "074": {
+   "type": "syll",
+   "value": "mo"
+  },
+  "099": {
+   "type": "logo",
+   "value": "ai"
+  },
+  "070": {
+   "type": "logo",
+   "value": "kai"
+  },
+  "091": {
+   "type": "syll",
+   "value": "ti"
+  },
+  "027": {
+   "type": "syll",
+   "value": "ke"
+  },
+  "052": {
+   "type": "logo",
+   "value": "tagi"
+  },
+  "260": {
+   "type": "logo",
+   "value": "au"
+  },
+  "076": {
+   "type": "logo",
+   "value": "vai"
+  },
+  "060": {
+   "type": "logo",
+   "value": "ika"
+  },
+  "073": {
+   "type": "syll",
+   "value": "me"
+  },
+  "053": {
+   "type": "logo",
+   "value": "uka"
+  },
+  "021": {
+   "type": "logo",
+   "value": "ana"
+  },
+  "054": {
+   "type": "logo",
+   "value": "ua"
+  },
+  "450": {
+   "type": "logo",
+   "value": "tuu"
+  },
+  "740": {
+   "type": "syll",
+   "value": "mi"
+  },
+  "034": {
+   "type": "logo",
+   "value": "mata"
+  },
+  "025": {
+   "type": "syll",
+   "value": "pu"
+  },
+  "047": {
+   "type": "logo",
+   "value": "era"
+  },
+  "028": {
+   "type": "logo",
+   "value": "koe"
+  },
+  "230": {
+   "type": "logo",
+   "value": "mai"
+  },
+  "015": {
+   "type": "syll",
+   "value": "go"
+  }
+ }
+}
