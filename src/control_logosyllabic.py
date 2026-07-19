@@ -5,30 +5,44 @@ cipher of real Rapa Nui text?
 Phase A: pure syllabic simulated annealing (all symbols treated as
 syllabograms), long schedule.
 Phase B: syllable key frozen; deterministic sweep over symbols x lexicon
-words, converting a symbol to a logogram whenever the likelihood gain
-exceeds an MDL penalty.
+words, converting a symbol to a logogram whenever the segmentation-score
+gain exceeds an MDL penalty.
 
-Usage: python control_logosyllabic.py SEED [ITERS] [MIN_LOGO_SYL]
+Both phases are the shared implementations in common.py, run with the
+SAME constraints as solver_logosyllabic.py (top-LOGO_MIN_RANK symbols
+ineligible as logograms, one-word-per-symbol uniqueness, line sampling,
+shuffled sweep order, 2 rounds) — so this control calibrates exactly
+the attack applied to the tablets.
+
+SPLIT_SEED controls the train/test partition (default 42, the published
+split); vary it to test robustness to the data partition.
+
+Usage: python control_logosyllabic.py SEED [ITERS] [MIN_LOGO_SYL] [SPLIT_SEED]
 """
-import math, random, sys
+import random, sys
 import numpy as np
 from collections import Counter
-from common import load_language, build_lm, syllabify
+from common import (load_language, build_lm, syllabify, build_word_lp,
+                    make_seg_scorer, make_line_seg, make_line_logp,
+                    phase_A, phase_B)
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 ITERS = int(sys.argv[2]) if len(sys.argv) > 2 else 150000
 MIN_LOGO_SYL = int(sys.argv[3]) if len(sys.argv) > 3 else 2
+SPLIT_SEED = int(sys.argv[4]) if len(sys.argv) > 4 else 42
 K_LOGO = 8
 LOGO_PENALTY = 8.0
 UNK_COST = -6.0        # per-syllable cost of unparseable material
 MAX_WLEN = 6
-SWEEPS = 3
+LOGO_MIN_RANK = 8      # same rank rule as solver_logosyllabic.py
+LOGO_LINE_SAMPLE = 12  # same line sampling as solver_logosyllabic.py
+ROUNDS = 2
 
 rng = random.Random(SEED)
 
 syll_lines, verses = load_language()
 idx = list(range(len(verses)))
-random.Random(42).shuffle(idx)
+random.Random(SPLIT_SEED).shuffle(idx)
 split = int(len(idx) * 0.6)
 train_v = [verses[i] for i in idx[:split]]
 test_v = [verses[i] for i in idx[split:]]
@@ -43,159 +57,98 @@ wfreq = Counter(w for v in test_v for w in v if len(syllabify(w)) >= MIN_LOGO_SY
 logo_words = [w for w, _ in wfreq.most_common(K_LOGO)]
 logo_sym = {w: S + 1 + i for i, w in enumerate(logo_words)}
 secret = list(range(S)); rng.shuffle(secret)
-cipher_lines = []
+cipher_lines, oov = [], 0
 for v in test_v:
     line = []
     for w in v:
         if w in logo_sym:
             line.append(logo_sym[w])
         else:
-            line.extend(secret[sid[s]] for s in syllabify(w) if s in sid)
+            for s in syllabify(w):
+                if s in sid:
+                    line.append(secret[sid[s]])
+                else:
+                    oov += 1
     if len(line) >= 3:
         cipher_lines.append(line)
 N = S + 1 + K_LOGO
 n_tok = sum(len(l) for l in cipher_lines)
-print(f"cipher: {len(cipher_lines)} lines, {n_tok} tokens; hidden logograms: {logo_words}")
+print(f"cipher: {len(cipher_lines)} lines, {n_tok} tokens "
+      f"({oov} OOV test tokens dropped); hidden logograms: {logo_words}")
 
+# ---- logogram candidate lexicon (train half; same size rule as solver) ----
 twf = Counter(w for v in train_v for w in v)
-cand = [w for w, _ in twf.most_common(150) if len(syllabify(w)) >= 2]
-LEX = [[sid[s] for s in syllabify(w)] for w in cand if all(s in sid for s in syllabify(w))]
+cand = [w for w, _ in twf.most_common(100) if len(syllabify(w)) >= 2]
 LEXW = [w for w in cand if all(s in sid for s in syllabify(w))]
+LEX = [[sid[s] for s in syllabify(w)] for w in LEXW]
 L = len(LEX)
-print(f"lexicon {L} words; {sum(1 for w in logo_words if w in LEXW)}/{K_LOGO} true words in lexicon")
+print(f"lexicon {L} words; {sum(1 for w in logo_words if w in LEXW)}/{K_LOGO} "
+      f"true words in lexicon")
 
 # ---- word-level segmentation scorer (train-half word unigrams) ----
-import math as _m
-_wc = Counter(w for v in train_v for w in v)
-_tot = sum(_wc.values())
-WORD_LP = {}
-for w, c in _wc.items():
-    ss = tuple(sid[s] for s in syllabify(w) if s in sid)
-    if ss and len(ss) <= MAX_WLEN:
-        WORD_LP[ss] = max(WORD_LP.get(ss, -1e9), _m.log(c/_tot))
-
-def seg_score(tokens):
-    """DP: best segmentation of syllable-id sequence into known words
-    (unigram logprob) with per-syllable UNK fallback."""
-    n = len(tokens)
-    best = [0.0]*(n+1)
-    for i in range(1, n+1):
-        b = best[i-1] + UNK_COST
-        lo = max(0, i-MAX_WLEN)
-        for j in range(lo, i-1+1):
-            w = tuple(tokens[j:i])
-            lp = WORD_LP.get(w)
-            if lp is not None:
-                v = best[j] + lp
-                if v > b: b = v
-        best[i] = b
-    return best[n]
-
-def line_seg(li):
-    ids = []
-    for g in cipher_lines[li]: ids.extend(emit(g))
-    return seg_score(ids)
+WORD_LP = build_word_lp(twf, sid, MAX_WLEN)
+seg_score = make_seg_scorer(WORD_LP, UNK_COST, MAX_WLEN)
 
 cfreq = np.zeros(N)
 for l in cipher_lines:
-    for x in l: cfreq[x] += 1
+    for x in l:
+        cfreq[x] += 1
 lines_with = [set() for _ in range(N)]
 for li, l in enumerate(cipher_lines):
-    for g in l: lines_with[g].add(li)
+    for g in l:
+        lines_with[g].add(li)
 lines_with = [sorted(x) for x in lines_with]
 present = [c for c in range(N) if cfreq[c] > 0]
 
-# ---- Phase A: pure syllabic annealing over all N symbols ----
 role = [-1] * N
-sylval = [0] * N
 order_c = list(np.argsort(-cfreq))
 sbf = list(np.argsort(-uni[:S]))
+sylval = [0] * N
 for rank, c in enumerate(order_c):
     sylval[c] = sbf[rank % S]
 
-def emit(g): return LEX[role[g]] if role[g] >= 0 else [sylval[g]]
+# Phase B eligibility: same rank rule as the solver — the LOGO_MIN_RANK
+# most frequent symbols are assumed syllabograms
+eligible = [c for rank, c in enumerate(order_c)
+            if rank >= LOGO_MIN_RANK and cfreq[c] > 0]
+n_hidden_eligible = sum(1 for s in logo_sym.values() if s in eligible)
+print(f"{n_hidden_eligible}/{K_LOGO} hidden logogram symbols rank >= "
+      f"{LOGO_MIN_RANK} (eligible for detection)")
 
-def line_logp(li):
-    ids = [BOS, BOS]
-    for g in cipher_lines[li]: ids.extend(emit(g))
-    ids.append(BOS)
-    a = np.array(ids)
-    return LOGP[a[:-2], a[1:-1], a[2:]].sum()
+line_seg = make_line_seg(cipher_lines, role, sylval, LEX, seg_score)
+line_logp = make_line_logp(cipher_lines, role, sylval, LEX, LOGP, BOS)
 
-def line_score(li):
-    """Length-debiased: logp + BETA per emitted token (neutralizes
-    the compression bias that otherwise makes shorter readings win)."""
-    ids = [BOS, BOS]
-    for g in cipher_lines[li]: ids.extend(emit(g))
-    ids.append(BOS)
-    a = np.array(ids)
-    return LOGP[a[:-2], a[1:-1], a[2:]].sum() + BETA * (len(a) - 3)
+def total_logp():
+    return sum(line_logp(li) for li in range(len(cipher_lines)))
 
-cache = np.array([line_logp(li) for li in range(len(cipher_lines))])
-
-def phase_A(iters):
-    global cache, sylval
-    cur = cache.sum(); best = cur
-    best_syl = list(sylval)
-    syl_syms = [c for c in present if role[c] == -1]
-    for it in range(iters):
-        T = 5.0 * (0.01/5.0) ** (it/iters)
-        i, j = rng.choice(syl_syms), rng.choice(syl_syms)
-        if i == j: continue
-        sylval[i], sylval[j] = sylval[j], sylval[i]
-        aff = sorted(set(lines_with[i]) | set(lines_with[j]))
-        old = cache[aff].copy()
-        for li in aff: cache[li] = line_logp(li)
-        new = cache.sum()
-        if new > cur or rng.random() < math.exp((new - cur)/(T*50)):
-            cur = new
-            if cur > best: best, best_syl = cur, list(sylval)
-        else:
-            cache[aff] = old
-            sylval[i], sylval[j] = sylval[j], sylval[i]
-    sylval[:] = best_syl
-    for li in range(len(cipher_lines)): cache[li] = line_logp(li)
-    print(f"  Phase A: logp/token = {cache.sum()/n_tok:.3f}")
-
-def phase_B():
-    changes_total = 0
-    eligible = [c for c in present if cfreq[c] >= 3]
-    for g in eligible:
-        base_role = role[g]
-        aff = lines_with[g]
-        base_sc = sum(line_seg(li) for li in aff) - (LOGO_PENALTY if base_role >= 0 else 0)
-        best_sc, best_role = base_sc, base_role
-        for w in range(-1, L):
-            if w == base_role: continue
-            role[g] = w
-            sc = sum(line_seg(li) for li in aff) - (LOGO_PENALTY if w >= 0 else 0)
-            if sc > best_sc: best_sc, best_role = sc, w
-        role[g] = best_role
-        if best_role != base_role:
-            changes_total += 1
-            for li in aff: cache[li] = line_logp(li)
-    print(f"  Phase B: {changes_total} role changes")
-    return changes_total
-
-for rnd_i in range(2):
-    print(f"Round {rnd_i+1}:")
-    phase_A(ITERS if rnd_i == 0 else ITERS//4)
-    if phase_B() == 0 and rnd_i > 0:
-        break
+for r in range(ROUNDS):
+    print(f"Round {r+1}:")
+    phase_A(cipher_lines, role, sylval, LEX, LOGP, BOS, S,
+            ITERS if r == 0 else ITERS // 4, rng,
+            pool=[c for c in present if role[c] == -1])
+    print(f"  Phase A: logp/token = {total_logp()/n_tok:.3f}")
+    order = list(eligible)
+    rng.shuffle(order)
+    changes = phase_B(order, lines_with, line_seg, role, L, LOGO_PENALTY, rng,
+                      line_sample=LOGO_LINE_SAMPLE)
+    print(f"  Phase B: {changes} role changes")
 
 # ---- evaluation ----
 inv = {secret[p]: p for p in range(S)}
 syl_ok = tok_ok = tok_tot = syl_tot = 0
 for c in range(S):
-    if cfreq[c] == 0: continue
+    if cfreq[c] == 0:
+        continue
     syl_tot += 1; tok_tot += cfreq[c]
     if role[c] == -1 and sylval[c] == inv.get(c, -99):
         syl_ok += 1; tok_ok += cfreq[c]
 logo_ok = sum(1 for w, s in logo_sym.items() if role[s] >= 0 and LEXW[role[s]] == w)
 logo_det = sum(1 for w, s in logo_sym.items() if role[s] >= 0)
 false_logo = sum(1 for c in range(S) if cfreq[c] > 0 and role[c] >= 0)
-print(f"RESULT seed={SEED}: syllable key {syl_ok}/{syl_tot} ({100*tok_ok/tok_tot:.1f}% of tokens)")
-print(f"RESULT logograms: {logo_ok}/{K_LOGO} exact word; {logo_det}/{K_LOGO} detected; "
+print(f"RESULT seed={SEED} split={SPLIT_SEED}: syllable key {syl_ok}/{syl_tot} "
+      f"({100*tok_ok/tok_tot:.1f}% of tokens)")
+print(f"RESULT logograms: {logo_ok}/{K_LOGO} exact word; {logo_det}/{K_LOGO} detected "
+      f"({n_hidden_eligible}/{K_LOGO} eligible); "
       f"{false_logo} false-positive logograms among true syllable symbols")
-print("guesses:", {w: (LEXW[role[s]] if role[s] >= 0 else 'SYLL:'+vocab[sylval[s]])
+print("guesses:", {w: (LEXW[role[s]] if role[s] >= 0 else 'SYLL:' + vocab[sylval[s]])
                    for w, s in logo_sym.items()})

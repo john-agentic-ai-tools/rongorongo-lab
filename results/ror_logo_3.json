@@ -2,7 +2,7 @@
  "seed": 3,
  "iters": 120000,
  "n_glyph_tokens": 11742,
- "logp_per_token": -3.8730325389104023,
+ "logp_per_token": -3.8730325389104006,
  "n_logograms": 14,
  "mapping": {
   "006": {
