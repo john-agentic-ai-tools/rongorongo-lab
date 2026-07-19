@@ -6,11 +6,15 @@ Simulated annealing over injective glyph->syllable mappings for the top
 archaic Rapa Nui chants. Run multiple seeds and compare mappings:
 cross-chain agreement measures identifiability.
 
+Note: unlike the controls (which hold out 40% of the chants), the LM
+here is trained on the full chant corpus — there is no ground truth to
+hold out for the tablets.
+
 Usage: python solver_syllabic.py SEED [ITERS] [OUT.json]
 """
-import json, math, random, sys
+import json, random, sys
 import numpy as np
-from common import load_language, build_lm, load_tablets, glyph_frequencies
+from common import load_language, build_lm, load_tablets, glyph_frequencies, anneal
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 0
 ITERS = int(sys.argv[2]) if len(sys.argv) > 2 else 150000
@@ -24,7 +28,6 @@ S = len(vocab)
 
 lines, names = load_tablets()
 gfreq = glyph_frequencies(lines)
-N_MAP = min(S, 50) - 1 if min(S, 50) == S else min(S, 50)
 N_MAP = min(S, 49)
 mapped = [g for g, _ in gfreq.most_common(N_MAP)]
 gidx = {g: i for i, g in enumerate(mapped)}
@@ -46,18 +49,9 @@ m[UNM] = BOS
 for i in range(N_MAP):
     m[i] = sbf[i % S]
 
-cur = score(m); best = cur; bm = m.copy()
-for it in range(ITERS):
-    T = 5.0 * (0.01/5.0) ** (it/ITERS)
-    i, j = rng.randrange(N_MAP), rng.randrange(N_MAP)
-    m2 = m.copy(); m2[i], m2[j] = m2[j], m2[i]
-    s2 = score(m2)
-    if s2 > cur or rng.random() < math.exp((s2 - cur)/(T*50)):
-        m, cur = m2, s2
-        if cur > best:
-            best, bm = cur, m.copy()
+best, bm = anneal(score, m, list(range(N_MAP)), ITERS, rng)
 
 mapping = {g: vocab[bm[gidx[g]]] for g in mapped}
 json.dump({'seed': SEED, 'score': float(best), 'n_positions': int(len(A)),
            'mapping': mapping}, open(OUT, 'w'), indent=1)
-print(f"seed {SEED}: logp/glyph = {best/len(A):.3f}")
+print(f"seed {SEED}: logp/sign = {best/len(A):.3f}")

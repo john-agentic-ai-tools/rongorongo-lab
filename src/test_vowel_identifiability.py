@@ -7,18 +7,21 @@ Test A: Jensen-Shannon divergence between syllable context distributions,
         within-vowel vs vowel-CV vs CV-CV (frequency-matched top-10 set).
 Test B: in partially-converged runs of the syllabic control cipher,
         compare exact-recovery rates for vowel symbols vs
-        frequency-matched CV symbols, and check whether misassigned
-        vowels land on other vowels above the ~50% chance rate.
+        frequency-matched CV symbols (both drawn from the top-10
+        frequency band), with a permutation test on the gap, and check
+        whether misassigned vowels land on other vowels above the ~50%
+        chance rate.
 
-Result (8 seeds, 12k iters): vowels 72% vs CV 65% recovery (n.s.);
-vowel->vowel confusions 45% vs ~50% chance. Conclusion: V/CV are NOT
-separable classes at this scale; any "sign X behaves as a vowel" claim
-from frequency-based solvers is a rank artifact. Davletshin was right.
+Result (16 seeds, 12k iters): vowels 46% vs CV 34% recovery
+(permutation test on the gap: p = 0.14, n.s.); vowel->vowel confusions
+49% vs ~50% chance. Conclusion: V/CV are NOT separable classes at this
+scale; any "sign X behaves as a vowel" claim from frequency-based
+solvers is a rank artifact. Davletshin was right.
 """
-import math, random
+import random
 import numpy as np
 from collections import Counter
-from common import load_language, build_lm, syllabify
+from common import load_language, build_lm, syllabify, anneal
 
 syll_lines, verses = load_language()
 full_vocab = sorted({s for l in syll_lines for s in l})
@@ -75,7 +78,7 @@ LOGP, vocab, sid, BOS, uni = build_lm(train_s)
 S = len(vocab)
 
 results = []
-for seed in range(1, 9):
+for seed in range(1, 17):
     rng = random.Random(seed)
     secret = list(range(S)); rng.shuffle(secret)
     enc = []
@@ -99,24 +102,16 @@ for seed in range(1, 9):
     m = np.empty(S + 1, dtype=int); m[S] = BOS
     for i in range(S):
         m[oc[i]] = os_[i]
-    cur = score(m); best = cur; bm = m.copy()
     ITERS = 12000  # deliberately partial convergence
-    for it in range(ITERS):
-        T = 5.0 * (0.01/5.0) ** (it/ITERS)
-        i, j = rng.randrange(S), rng.randrange(S)
-        m2 = m.copy(); m2[i], m2[j] = m2[j], m2[i]
-        s2 = score(m2)
-        if s2 > cur or rng.random() < math.exp((s2 - cur)/(T*50)):
-            m, cur = m2, s2
-        if cur > best:
-            best, bm = cur, m.copy()
+    best, bm = anneal(score, m, list(range(S)), ITERS, rng)
     inv = {secret[p]: p for p in range(S)}
     for c in range(S):
         if cfreq[c] == 0:
             continue
         results.append((vocab[inv[c]], vocab[bm[c]]))
 
-v_all = [r for r in results if r[0] in V_SET]
+# frequency-matched comparison: both groups from the top-10 band
+v_all = [r for r in results if r[0] in vows]
 v_ok = sum(1 for r in v_all if r[0] == r[1])
 wrong_v = [r for r in v_all if r[0] != r[1]]
 v_to_v = sum(1 for r in wrong_v if r[1] in V_SET)
@@ -125,3 +120,18 @@ cv_ok = sum(1 for r in cv_all if r[0] == r[1])
 print(f"Test B: vowels exact {v_ok}/{len(v_all)} | "
       f"freq-matched CV exact {cv_ok}/{len(cv_all)} | "
       f"vowel errors -> vowel {v_to_v}/{len(wrong_v)} (chance ~50%)")
+
+# permutation test on the recovery-rate gap (label shuffle over trials)
+obs_gap = v_ok / len(v_all) - cv_ok / len(cv_all)
+outcomes = np.array([1 if r[0] == r[1] else 0 for r in v_all + cv_all])
+n_v = len(v_all)
+prng = np.random.default_rng(0)
+n_perm = 10000
+count = 0
+for _ in range(n_perm):
+    perm = prng.permutation(outcomes)
+    gap = perm[:n_v].mean() - perm[n_v:].mean()
+    if abs(gap) >= abs(obs_gap) - 1e-12:
+        count += 1
+print(f"Test B permutation test: gap={obs_gap:+.3f}, "
+      f"p={count/n_perm:.3f} (two-sided, {n_perm} shuffles)")

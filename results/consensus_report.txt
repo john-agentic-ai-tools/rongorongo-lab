@@ -1,4 +1,4 @@
-glyph | seed1     | seed2     | seed3     | agree
+sign  | seed1     | seed2     | seed3     | agree
  006  | s:a       | s:e       | s:a       | 2/3
  003  | s:i       | s:i       | s:i       | FULL
  001  | s:e       | s:a       | s:e       | 2/3
@@ -53,4 +53,4 @@ Full 3-chain agreement: 4/49
 Consensus SYLLABLES: [('003', 's:i'), ('010', 's:u'), ('002', 's:ka'), ('730', 's:tu')]
 Consensus LOGOGRAMS: []
 
-Glyph 041 (Mamari crescent): [{'type': 'syll', 'value': 're'}, {'type': 'syll', 'value': 'ha'}, {'type': 'syll', 'value': 'mo'}]
+Sign 041 (Mamari crescent): [{'type': 'syll', 'value': 're'}, {'type': 'syll', 'value': 'ha'}, {'type': 'syll', 'value': 'mo'}]

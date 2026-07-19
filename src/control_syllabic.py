@@ -9,20 +9,25 @@ Expected result (calibrated): 100% key recovery from ~3.4k tokens.
 This establishes that IF rongorongo were a plain syllabic substitution
 of chant-register Rapa Nui, the same pipeline would crack it.
 
-Usage: python control_syllabic.py SEED [ITERS]
+SPLIT_SEED controls the train/test partition (default 42, the published
+split); vary it to test robustness to the data partition, not just to
+the key and optimizer randomness.
+
+Usage: python control_syllabic.py SEED [ITERS] [SPLIT_SEED]
 """
-import math, random, sys
+import random, sys
 import numpy as np
-from common import load_language, build_lm, syllabify
+from common import load_language, build_lm, syllabify, anneal
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 ITERS = int(sys.argv[2]) if len(sys.argv) > 2 else 150000
+SPLIT_SEED = int(sys.argv[3]) if len(sys.argv) > 3 else 42
 
 rng = random.Random(SEED)
 
 syll_lines, verses = load_language()
 idx = list(range(len(verses)))
-random.Random(42).shuffle(idx)
+random.Random(SPLIT_SEED).shuffle(idx)
 split = int(len(idx) * 0.6)
 train_v = [verses[i] for i in idx[:split]]
 test_v = [verses[i] for i in idx[split:]]
@@ -34,13 +39,20 @@ S = len(vocab)
 
 secret = list(range(S))
 rng.shuffle(secret)
-enc = []
+enc, oov = [], 0
 for v in test_v:
-    l = [secret[sid[s]] for w in v for s in syllabify(w) if s in sid]
+    l = []
+    for w in v:
+        for s in syllabify(w):
+            if s in sid:
+                l.append(secret[sid[s]])
+            else:
+                oov += 1
     if len(l) >= 3:
         enc.append(l)
 n_tok = sum(len(l) for l in enc)
-print(f"cipher: {len(enc)} lines, {n_tok} tokens")
+print(f"cipher: {len(enc)} lines, {n_tok} tokens "
+      f"({oov} OOV test tokens dropped, absent from train vocab)")
 
 A, B, C = [], [], []
 for l in enc:
@@ -63,18 +75,23 @@ m[S] = BOS
 for i in range(S):
     m[order_c[i]] = order_s[i]
 
-cur = score(m); best = cur; bm = m.copy()
-for it in range(ITERS):
-    T = 5.0 * (0.01/5.0) ** (it/ITERS)
-    i, j = rng.randrange(S), rng.randrange(S)
-    m2 = m.copy(); m2[i], m2[j] = m2[j], m2[i]
-    s2 = score(m2)
-    if s2 > cur or rng.random() < math.exp((s2 - cur)/(T*50)):
-        m, cur = m2, s2
-        if cur > best:
-            best, bm = cur, m.copy()
+# evaluate over symbols actually present in the ciphertext: absent
+# symbols are unconstrained by the objective and say nothing about it
+inv = {secret[p]: p for p in range(S)}
+present = [c for c in range(S) if cfreq[c] > 0]
 
-correct = sum(1 for c in range(S) if bm[c] == secret.index(c))
-wcorrect = sum(cfreq[c] for c in range(S) if bm[c] == secret.index(c)) / cfreq.sum()
-print(f"RESULT seed={SEED}: key recovered {correct}/{S} symbols "
-      f"({100*wcorrect:.1f}% of tokens); logp/token={best/len(A):.3f}")
+def recovery(mm):
+    ok = sum(1 for c in present if mm[c] == inv[c])
+    wok = sum(cfreq[c] for c in present if mm[c] == inv[c]) / cfreq.sum()
+    return ok, wok
+
+init_ok, init_wok = recovery(m)
+print(f"warm start (frequency ranks alone): {init_ok}/{len(present)} symbols "
+      f"({100*init_wok:.1f}% of tokens)")
+
+best, bm = anneal(score, m, list(range(S)), ITERS, rng)
+
+correct, wcorrect = recovery(bm)
+print(f"RESULT seed={SEED} split={SPLIT_SEED}: key recovered "
+      f"{correct}/{len(present)} present symbols ({100*wcorrect:.1f}% of tokens; "
+      f"{S - len(present)} absent); logp/token={best/len(A):.3f}")

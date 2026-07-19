@@ -10,9 +10,12 @@ experiments that make the negative result meaningful.
 
 ## Findings (summary)
 
-1. **A trigram-LM annealing attack fully cracks a genuine 49-symbol
-   syllabic substitution cipher of Rapa Nui** — 100% key recovery from
-   ~3.4k tokens, LM trained on held-out text (`control_syllabic.py`).
+1. **A trigram-LM annealing attack cracks a genuine 49-symbol syllabic
+   substitution cipher of Rapa Nui** — 100% key recovery from ~3.4k
+   tokens on the published train/test split, 98.5–100% of tokens across
+   varied splits, LM trained on held-out text (`control_syllabic.py`).
+   The frequency-rank warm start alone recovers only ~13–39% of tokens:
+   the annealer, not the frequency prior, does the work.
 2. **The identical attack fails on the rongorongo corpus** (~12k sign
    tokens ≈ 120× the Shannon unicity distance): scores beat random
    mappings (z ≈ +10), but independent chains disagree on ~95% of sign
@@ -35,8 +38,9 @@ experiments that make the negative result meaningful.
    as weak statistical observations, not readings. (A prior claim that
    signs 001/006 "behave as vowels" was withdrawn after a control test
    showed V and CV syllables are not distributionally separable in
-   Rapa Nui — vowel recovery matches frequency-matched CV recovery,
-   and vowel→vowel confusions occur at the chance rate.)
+   Rapa Nui — vowel recovery does not significantly exceed
+   frequency-matched CV recovery (permutation test p ≈ 0.14), and
+   vowel→vowel confusions occur at the chance rate.)
 
 ## Layout
 
@@ -58,11 +62,20 @@ results/                   chain outputs + consensus report
 ```bash
 pip install numpy
 cd src
-python control_syllabic.py 1            # expect 100% key recovery
+python control_syllabic.py 1            # expect ~100% key recovery
+python control_syllabic.py 1 150000 7   # same, different train/test split
 python control_logosyllabic.py 1 80000 2  # expect partial recovery
 python solver_syllabic.py 1             # rongorongo, syllabic hypothesis
 python solver_logosyllabic.py 1         # rongorongo, logosyllabic hypothesis
 ```
+
+Methodology notes: the annealer and the two-phase (anneal + logogram
+sweep) code are shared (`common.py`), so the controls run literally the
+same attack as the rongorongo solvers. The controls train the LM on a
+60% split of the chants and encipher the held-out 40% (the third CLI
+argument of `control_syllabic.py` varies the split); the rongorongo
+solvers train on the full chant corpus, since there is no ground truth
+to hold out for the tablets.
 
 Run solvers with several seeds and diff the mappings; the fraction of
 signs receiving identical values across chains is the identifiability
