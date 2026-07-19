@@ -41,6 +41,20 @@
   "010": "u",
   "002": "ka",
   "730": "tu",
-  "note": "glyphs 001/006 behave as vowels; observations, not readings"
+  "note": "observations, not readings; earlier 001/006-as-vowels claim withdrawn (frequency-rank artifact, see vowel_identifiability_test)"
+ },
+ "vowel_identifiability_test": {
+  "prompted_by": "A. Davletshin correspondence",
+  "test_A_context_JSD": {
+   "vowel_vowel": 0.246,
+   "vowel_CV": 0.296,
+   "CV_CV": 0.317
+  },
+  "test_B_partial_recovery": {
+   "vowel_exact": "29/40 (72%)",
+   "freq_matched_CV_exact": "26/40 (65%)",
+   "vowel_errors_landing_on_vowel": "5/11 (45%) vs ~50% chance"
+  },
+  "conclusion": "V vs CV not separable as distributional classes in Rapa Nui at this scale"
  }
 }
