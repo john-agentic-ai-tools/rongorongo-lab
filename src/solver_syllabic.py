@@ -15,7 +15,7 @@ Usage: python solver_syllabic.py SEED [ITERS] [OUT.json]
 import json, random, sys
 import numpy as np
 from common import (load_language, build_lm, load_tablets, glyph_frequencies,
-                    anneal, resolve_source)
+                    anneal, resolve_source, corpus_stamp)
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 0
 ITERS = int(sys.argv[2]) if len(sys.argv) > 2 else 150000
@@ -54,6 +54,6 @@ for i in range(N_MAP):
 best, bm = anneal(score, m, list(range(N_MAP)), ITERS, rng)
 
 mapping = {g: vocab[bm[gidx[g]]] for g in mapped}
-json.dump({'seed': SEED, 'corpus': CORPUS, 'score': float(best),
+json.dump({'seed': SEED, **corpus_stamp(CORPUS), 'score': float(best),
            'n_positions': int(len(A)), 'mapping': mapping}, open(OUT, 'w'), indent=1)
 print(f"[{CORPUS}] seed {SEED}: logp/sign = {best/len(A):.3f}")

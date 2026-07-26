@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Full reproduction: controls first (calibration), then rongorongo solvers.
 #
-# Transliteration is selectable:  RR_CORPUS=barthel (default) or RR_CORPUS=horley
-# Horley results go to ../results_horley so a Barthel run and a Horley run can be
-# compared side by side.  Run both, then read ../results/corpus_diff.txt.
+# Transliteration is selectable:  RR_CORPUS=barthel (default) | ceipp | horley
+#   barthel  Barthel 1958 via rongopy -- lossy: no allographic suffixes, no ligatures
+#   ceipp    the C.E.I.P.P. extended-Barthel text; build it first with fetch_ceipp.py.
+#            Reading policies: RR_CEIPP_VARIANTS=keep|strip, RR_CEIPP_GROUPS=atomic|fused
+#   horley   horley_map.json applied over ceipp (or barthel, if ceipp is not built)
+# Non-default corpora write to ../results_<corpus> so runs can be compared side by side.
+# Run several, then read the ../results/corpus_diff_*.txt reports.
 set -e
 CORPUS="${RR_CORPUS:-barthel}"
 if [ "$CORPUS" = "barthel" ]; then RESULTS=../results; else RESULTS="../results_${CORPUS}"; fi
@@ -22,7 +26,15 @@ echo "=== Rongorongo: logosyllabic hypothesis, 3 seeds ==="
 for s in 1 2 3; do python3 solver_logosyllabic.py $s 120000 "$RESULTS/ror_logo_$s.json" "$CORPUS"; done
 echo "=== Consensus report ==="
 python3 consensus.py "$RESULTS" "$CORPUS"
-echo "=== Corpus difference report (barthel vs horley) ==="
-python3 compare_corpora.py
+echo "=== Corpus difference reports ==="
+python3 compare_corpora.py barthel horley
+if [ -f ../data/tablets_ceipp.json ]; then
+  python3 compare_corpora.py barthel ceipp                  # what the rongopy re-encoding lost
+  python3 compare_corpora.py ceipp horley                   # the map's effect, isolated
+  python3 compare_corpora.py ceipp ceipp:variants=strip     # allograph-merging sensitivity
+  python3 compare_corpora.py ceipp ceipp:groups=fused       # ligature-reading sensitivity
+else
+  echo "(skipping ceipp comparisons - run 'python3 fetch_ceipp.py' to build that corpus)"
+fi
 echo "Compare mappings across seeds in $RESULTS/ - agreement = identifiability."
-echo "To contrast encodings: run once with RR_CORPUS=barthel and once with RR_CORPUS=horley."
+echo "To contrast encodings: rerun with RR_CORPUS=ceipp and RR_CORPUS=horley."

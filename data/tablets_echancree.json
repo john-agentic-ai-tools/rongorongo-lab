@@ -1,0 +1,39 @@
+{
+ "_meta": {
+  "purpose": "3D-verified ground truth for item D (the Echancree tablet), transcribed from the INSCRIBE project's re-reading. Used to check the Barthel/C.E.I.P.P. reading of the same object sign by sign: this is the only tablet in the corpus for which a sub-millimetre 3D model has produced a published, independent transcription.",
+  "citation": "Lastilla, L., Ravanelli, R., Valerio, M. & Ferrara, S. (2022). Modelling the Rongorongo tablets: a new transcription of the Echancree tablet and the foundation for decipherment attempts. Digital Scholarship in the Humanities 37(2): 497-518. doi:10.1093/llc/fqab070",
+  "license": "CC BY-NC (Oxford University Press on behalf of EADH). What is stored here is the transcription -- a catalogue of readings, cited -- not the article's drawings, figures or 3D models, none of which are reproduced.",
+  "transcribed_from": "Sections 4.1.1 (side A) and 4.1.2 (side B), pp. 509-510, verified against both the publisher HTML and the open-access PDF at cris.unibo.it.",
+  "graphic_elements_reported": 212,
+  "notation": {
+   "]  [": "line begins / ends at a broken or lost edge",
+   "-": "separates graphic elements (the paper's en-dash)",
+   ". :": "Barthel's linking and stacking, as in his own system",
+   "/": "two equally possible transcriptions of one element, e.g. 381/741 (Barthel's 381 and 741 are probably variants of one sign)",
+   "*": "the paper's bullet: uncertainty about one glyph, or about one digit-position (body part) of a 200-700 series glyph. '68*' = one of the five signs in the 680 series, lower portion not preserved.",
+   "( )": "an element's internal composition or an editorial equation, e.g. 173(=5.225/325)",
+   "[...]": "an indeterminate stretch of lost signs"
+  },
+  "codes_are": "Barthel's ORIGINAL system, unpadded (1, 60, 700), NOT the C.E.I.P.P. extended system. Zero-fill before comparing with tablets_ceipp.json.",
+  "KNOWN_LOSS": "The paper marks doubtful readings by UNDERLINING. Underlining survives neither the HTML nor the PDF text extraction, so it is absent here. Any element in this file may be a doubtful reading in the original; consult the article before treating a single element as settled.",
+  "uncertain_transcriptions": [
+   "Db3, between '4.94a/116' and the following '2': the source renders this as '- -' (PDF) / '--' (HTML). It is most likely a bullet element whose glyph was dropped by both text extractions, but it has not been confirmed against the printed page. Recorded verbatim below; do not count on it."
+  ]
+ },
+ "D": {
+  "Da1": "]*-*-*-*-2*1(-)6-381/741-700-208-7y-7-94-207-63.207s-734-204-5f-522f-99[",
+  "Da2": "]*-60-78/79-306y-56-460.90-590V.s-205-75.300y.301s-441.95x.3-445.107.1-s594-284-s605-173(=5.225/325)-6-[",
+  "Da3": "]600-42:200.41/11-610-2-200.52x.s-600-2-200.52x.52-600-460-200.52x.69-600-200.52x.69-200.52x.s-600[",
+  "Da4": "]7-371/379(.61)-700-207-7-2V-700-73.64-52x.590.52x-(6x.)206s-42:2-73.6-590.52.s-204-34-370.1[",
+  "Da5": "]380y-2V.3-730-1.400/600-1-700-400/600-93-1.380y-2V.3-730-93-20cfy-20bfy(=1f.20y?)-2-1-2V-381/741-20dy-37*[",
+  "Da6": "]59-470-3.3.52-50-1.6/61-38*-20*/30*.78/79-400/600-50-700.240/340-700-*-243-*-7-60.[",
+  "Da7": "]202-95-94a/116-81-450-526-739-301y.6-83-590.61-607-206-739-605-*[",
+  "Da8": "]*-* [...]-2**-2**.2**-3*6-84-*(-)*[",
+  "Db1": "]246/256-1-200.52-371/731-371/731-306.56/74(-)41-3*2-464.*-2-68*-464.*-2-3../40.-*[",
+  "Db2": "]590.56-25.10-9.6.3-606s.3-82.6.3-667/670.3-93f.93f-606s-73.6-8-59.6-520f-***[",
+  "Db3": "]383-383-13.6.74-1.63-1.63-7.3-4.6-4.94a/116--2-2-280.63-12-93-200-***[",
+  "Db4": "]1-381/741-630-50-50-1-700.244-700.244-240.8-240.8-22-7-600-7.10-*[",
+  "Db5": "]522f.700-2.9-200.524f.78-6-700:6-622-381/741-1-8-40V-8-69.108/109-445-445[",
+  "Db6": "]244/254-55-9-44/79-608V/633-6/55-7-600-7-68*-s234-93f-42:9-22f["
+ }
+}

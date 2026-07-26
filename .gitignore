@@ -1,2 +1,11 @@
 __pycache__/
 *.pyc
+
+# Built locally by src/fetch_ceipp.py from rongorongo.org. Not committed: the C.E.I.P.P.
+# terms allow copying and redistribution only for non-profit use with attribution, which
+# does not sit comfortably inside this GPL-3.0 tree. Run the script to reproduce it.
+data/tablets_ceipp.json
+data/.ceipp_cache/
+
+# Unsent correspondence drafts: personal contact details, and private until sent.
+docs/outreach/

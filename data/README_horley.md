@@ -5,11 +5,20 @@ The lab reads its transliteration through one function, `common.load_tablets(sou
 then defaults to `barthel`.
 
 - **`barthel`** — `tablets_simple.json`, the Barthel (1958) transliteration via rongopy.
-  Unchanged historical behaviour.
+  Unchanged historical behaviour. Note it is a **lossy** re-encoding — see
+  [README_ceipp.md](README_ceipp.md).
+- **`ceipp`** — the C.E.I.P.P. extended-Barthel text, which keeps the allographic suffixes
+  and ligature structure rongopy discarded. Built by `src/fetch_ceipp.py`.
 - **`horley`** — if a standalone `tablets_horley.json` exists it is loaded directly;
-  otherwise the corpus is **derived** by applying `horley_map.json` to the Barthel
-  sequences. This lets us test Horley-informed sign decisions before a full manual
-  re-encoding of every tablet exists.
+  otherwise the corpus is **derived** by applying `horley_map.json` over the best available
+  base (`ceipp` once built, else `barthel`). This lets us test Horley-informed sign decisions
+  before a full manual re-encoding of every tablet exists.
+
+> **The shipped map barely fires over `ceipp`.** Its entries are keyed on rongopy-style bare
+> three-digit codes (`074`, `280`), but a faithful corpus spells the same signs `074f`,
+> `074x`, `050.010.037`. Over `ceipp` the inventory moves only 1584 → 1582. Real entries must
+> be written against extended codes; until then, run map experiments against `barthel` and
+> read the result as mechanism, not measurement.
 
 ## Why a transform instead of a re-typed corpus
 

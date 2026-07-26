@@ -9,17 +9,39 @@ import numpy as np
 from collections import Counter
 
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data')
-TAXOGRAMS = {'200', '400', '000'}   # 200/400: suspected taxograms (Guy 2006); 000: lacuna
+# 200/400: suspected taxograms (Guy 2006); 000: lacuna.
+# NOTE: under 'barthel' (rongopy) these three codes are 21.2% of all tokens, because that
+# re-encoding collapses much of the 200-/400- series onto the bare codes 200 and 400. Under
+# 'ceipp' the series are intact (208, 225, 290, 380, ...) and only the genuine 200/400 are
+# stripped -- a far smaller share. The set is deliberately unchanged; see
+# results/corpus_diff_barthel_vs_ceipp.txt for the measured difference.
+TAXOGRAMS = {'200', '400', '000'}
 
-# Transliteration sources. 'barthel' is the historical default (Barthel 1958 via
-# rongopy); 'horley' derives a re-tracing-informed corpus by applying the sign-taxonomy
-# transform in data/horley_map.json to the Barthel sequences (or, if it exists, loads a
-# directly re-encoded data/tablets_horley.json that supersedes the transform). See
-# docs/HORLEY_ACQUISITION.md and data/README_horley.md.
+# Transliteration sources.
+#   'barthel' -- the historical default (Barthel 1958 via rongopy), left untouched so every
+#                published result stays reproducible;
+#   'ceipp'   -- the Commission Rongorongo / C.E.I.P.P. extended-Barthel text, which keeps
+#                the allographic suffixes and sign-combination punctuation rongopy dropped.
+#                Built locally by src/fetch_ceipp.py; see data/README_ceipp.md;
+#   'horley'  -- a re-tracing-informed corpus: a standalone data/tablets_horley.json if one
+#                exists, otherwise derived by applying data/horley_map.json over the best
+#                available base (ceipp when built, else barthel).
+# See docs/HORLEY_ACQUISITION.md and data/README_horley.md.
 CORPORA = {
     'barthel': 'tablets_simple.json',
+    'ceipp': 'tablets_ceipp.json',
     'horley': 'tablets_horley.json',   # optional standalone re-encoding; see load_tablets
 }
+
+# How the C.E.I.P.P. encoding is resolved into signs. Both default to the faithful reading;
+# flipping them IS the sign-merging sensitivity experiment (see docs/HORLEY_ACQUISITION.md).
+#   RR_CEIPP_VARIANTS  keep  -- 074f, 074 and 074x are distinct signs (Barthel's own
+#                              allographic distinctions preserved)
+#                      strip -- fold every allographic suffix onto the base code
+#   RR_CEIPP_GROUPS    atomic -- a linked/stacked group is several signs
+#                      fused  -- a linked/stacked group is ONE sign (Barthel's own ligature
+#                               reading honoured), spelled e.g. '050.010.037'
+CEIPP_POLICIES = {'variants': ('keep', 'strip'), 'groups': ('atomic', 'fused')}
 
 
 def resolve_source(source=None):
@@ -28,6 +50,19 @@ def resolve_source(source=None):
     if src not in CORPORA:
         raise ValueError(f"unknown corpus {src!r}; choose from {sorted(CORPORA)}")
     return src
+
+
+def ceipp_policy(variants=None, groups=None):
+    """Resolve the two C.E.I.P.P. reading policies: explicit arg > env > faithful default."""
+    out = {}
+    for name, value in (('variants', variants), ('groups', groups)):
+        v = (value or os.environ.get('RR_CEIPP_' + name.upper())
+             or CEIPP_POLICIES[name][0]).lower()
+        if v not in CEIPP_POLICIES[name]:
+            raise ValueError(f"unknown RR_CEIPP_{name.upper()}={v!r}; "
+                             f"choose from {list(CEIPP_POLICIES[name])}")
+        out[name] = v
+    return out
 
 
 def syllabify(word):
@@ -69,6 +104,63 @@ def build_lm(syll_lines, k=0.1, lam=(0.5, 0.35, 0.15)):
     p_tri = (tri + k) / (tri.sum(2, keepdims=True) + k*V)
     P = lam[0]*p_tri + lam[1]*p_bi[None, :, :] + lam[2]*p_uni[None, None, :]
     return np.log(P), vocab, sid, BOS, uni
+
+
+_CEIPP_SEP = re.compile(r'[.:;]')       # linking / separate stacking / linked stacking
+_CEIPP_BASE = re.compile(r'^(\d{1,3})')  # numeric part of an atomic sign
+
+
+def corpus_stamp(source=None, variants=None, groups=None):
+    """Provenance for a result file: which corpus, and under which reading policies.
+
+    Anything derived from 'ceipp' depends on the variants/groups policies as much as on the
+    source name, so both go into every result JSON -- otherwise a run cannot be interpreted
+    after the fact. Non-C.E.I.P.P. sources stamp the name alone.
+    """
+    src = resolve_source(source)
+    stamp = {'corpus': src}
+    derived_from_ceipp = src == 'ceipp' or (
+        src == 'horley'
+        and not os.path.exists(os.path.join(DATA, CORPORA['horley']))
+        and os.path.exists(os.path.join(DATA, CORPORA['ceipp'])))
+    if derived_from_ceipp:
+        stamp['ceipp_policy'] = ceipp_policy(variants, groups)
+    return stamp
+
+
+def flatten_ceipp(line, variants='keep', groups='atomic'):
+    """Resolve one C.E.I.P.P. line ('001-009-755-050.010.037-...') into a list of signs.
+
+    The stored encoding takes no taxonomy decisions, so this is where they are taken --
+    explicitly, reversibly, and recorded in every result file:
+
+      groups='atomic'  a linked/stacked group contributes each of its members separately;
+      groups='fused'   the whole group is one sign, keeping its punctuation in the label,
+                       so '050.010.037' is a single ligature-level symbol;
+      variants='keep'  allographic suffixes are significant ('074f' != '074');
+      variants='strip' suffixes are folded onto the base code (both become '074').
+
+    Per-sign status markers ('?' doubtful, '!' illegible) are always dropped -- they qualify
+    the reading, not the sign identity -- so an illegible sign surfaces as the lacuna 000
+    and is then removed by the TAXOGRAMS filter, exactly as under 'barthel'.
+    """
+    out = []
+    for group in line.split('-'):
+        if not group:
+            continue
+        signs = [s.strip('?!') for s in _CEIPP_SEP.split(group)]
+        signs = [s for s in signs if s]
+        if not signs:
+            continue
+        if variants == 'strip':
+            signs = [_CEIPP_BASE.match(s).group(1).zfill(3) for s in signs]
+        if groups == 'fused' and len(signs) > 1:
+            # Keep the original separators so the fused label stays readable and unique.
+            seps = _CEIPP_SEP.findall(group)
+            out.append(''.join(s + sep for s, sep in zip(signs, seps + [''])))
+        else:
+            out.extend(signs)
+    return out
 
 
 def load_horley_map(path=None):
@@ -132,26 +224,44 @@ def _resolve_split(entry, prev, nxt):
     return entry['default']
 
 
-def load_tablets(path=None, min_len=3, source=None):
+def load_tablets(path=None, min_len=3, source=None, variants=None, groups=None):
     """Return (lines, names): sign sequences with taxograms removed.
 
-    source selects the transliteration (see resolve_source / CORPORA). 'barthel' is the
-    exact historical behaviour. 'horley' loads a standalone data/tablets_horley.json if
-    present, otherwise derives the corpus by applying data/horley_map.json to the Barthel
-    sequences. An explicit `path` overrides source selection (used by tests/tools)."""
+    source selects the transliteration (see resolve_source / CORPORA):
+      'barthel' -- the exact historical behaviour, byte for byte;
+      'ceipp'   -- the C.E.I.P.P. extended-Barthel text, resolved into signs by
+                   flatten_ceipp under the variants/groups policies (see ceipp_policy);
+      'horley'  -- a standalone data/tablets_horley.json if present, otherwise the corpus
+                   derived by applying data/horley_map.json over the best available base:
+                   'ceipp' once it has been built, else 'barthel'.
+
+    An explicit `path` overrides source selection (used by tests/tools); pass `variants` /
+    `groups` to override the C.E.I.P.P. policies for one call.
+    """
     src = resolve_source(source)
     hmap = None
+    is_ceipp = src == 'ceipp'
     if path is None:
-        fname = CORPORA[src]
-        path = os.path.join(DATA, fname)
+        path = os.path.join(DATA, CORPORA[src])
         if src == 'horley' and not os.path.exists(path):
-            path = os.path.join(DATA, CORPORA['barthel'])  # derive from Barthel + map
-            hmap = load_horley_map()
-    tablets = json.load(open(path))
+            hmap = load_horley_map()                       # derive from a base + the map
+            base = os.path.join(DATA, CORPORA['ceipp'])
+            if os.path.exists(base):
+                path, is_ceipp = base, True
+            else:
+                path = os.path.join(DATA, CORPORA['barthel'])
+        if is_ceipp and not os.path.exists(path):
+            raise FileNotFoundError(
+                f'{path} not found -- build it first with: python fetch_ceipp.py')
+    tablets = json.load(open(path, encoding='utf-8'))
+    pol = ceipp_policy(variants, groups) if is_ceipp else None
     lines, names = [], []
     for tab, tlines in tablets.items():
+        if tab.startswith('_'):                            # skip the _meta block
+            continue
         for lname, seq in tlines.items():
-            codes = [g for g in seq.split('-') if g]
+            codes = (flatten_ceipp(seq, **pol) if is_ceipp
+                     else [g for g in seq.split('-') if g])
             if hmap is not None:
                 codes = apply_horley(codes, hmap)
             gs = [g for g in codes if g not in TAXOGRAMS]

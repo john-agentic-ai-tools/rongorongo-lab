@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -)",
+      "Bash(python -c ' *)",
+      "Bash(python compare_corpora.py barthel ceipp)",
+      "Bash(python compare_corpora.py ceipp \"ceipp:variants=strip\")",
+      "Bash(python compare_corpora.py ceipp \"ceipp:groups=fused\")",
+      "Bash(python compare_corpora.py)",
+      "Bash(python solver_syllabic.py 1 4000 C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad/x1.json barthel)",
+      "Bash(RR_CORPUS=ceipp python solver_syllabic.py 1 4000 C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad/x2.json)",
+      "Bash(RR_CEIPP_GROUPS=fused python solver_syllabic.py 1 4000 C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad/x3.json ceipp)",
+      "Bash(RR_CORPUS=horley python solver_logosyllabic.py 1 3000 C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad/x4.json)",
+      "WebFetch(domain:academic.oup.com)",
+      "Bash(curl -sL -m 120 -A \"Mozilla/5.0\" -o ferrara2022.pdf \"https://cris.unibo.it/retrieve/693a1397-b798-41be-916a-67c2c791f435/Ferrara_Modelling_%20the_Rongorongo.pdf\")",
+      "WebFetch(domain:cris.unibo.it)",
+      "Bash(python -m pip install --quiet pypdf)",
+      "Bash(python compare_echancree.py)",
+      "Bash(python fetch_ceipp.py --offline)",
+      "Bash(python compare_corpora.py ceipp ceipp:variants=strip)",
+      "Bash(python compare_corpora.py ceipp ceipp:groups=fused)",
+      "Bash(python compare_corpora.py ceipp horley)",
+      "Bash(mv ../data/tablets_ceipp.json ../data/_hidden.json)",
+      "Bash(python control_syllabic.py 1)"
+    ]
+  }
+}

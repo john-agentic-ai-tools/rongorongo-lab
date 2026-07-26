@@ -1,12 +1,22 @@
 {
+ "a": {
+  "spec": "ceipp",
+  "source": "ceipp",
+  "policy": {}
+ },
+ "b": {
+  "spec": "horley",
+  "source": "horley",
+  "policy": {}
+ },
  "inventory": {
-  "barthel": 239,
-  "horley": 238,
-  "delta": -1
+  "ceipp": 1584,
+  "horley": 1582,
+  "delta": -2
  },
  "tokens": {
-  "barthel": 11742,
-  "horley": 11742
+  "ceipp": 14179,
+  "horley": 14179
  },
  "ops": {
   "merges": 2,
@@ -14,21 +24,21 @@
   "ligatures": 1
  },
  "unicity": {
-  "barthel": {
-   "n": 239,
-   "H_key_bits": 1548.7797368351132,
-   "H1_bits": 5.5613369480644,
-   "redundancy_bits": 2.3395298599163485,
-   "U_signs": 662.0046887926837,
-   "tokens_over_U": 17.737034493538424
+  "ceipp": {
+   "n": 1584,
+   "H_key_bits": 14558.31244371212,
+   "H1_bits": 8.319454394245634,
+   "redundancy_bits": 2.3099022258339765,
+   "U_signs": 6302.566524631115,
+   "tokens_over_U": 2.249718419406908
   },
   "horley": {
-   "n": 238,
-   "H_key_bits": 1540.8788700271325,
-   "H1_bits": 5.49660912502706,
-   "redundancy_bits": 2.3982086382808836,
-   "U_signs": 642.512434252462,
-   "tokens_over_U": 18.275132704103004
+   "n": 1582,
+   "H_key_bits": 14537.054641551902,
+   "H1_bits": 8.292340240220605,
+   "redundancy_bits": 2.335193644252186,
+   "U_signs": 6225.203069275737,
+   "tokens_over_U": 2.277676702625162
   }
  },
  "affected_codes": [
@@ -86,10 +96,11 @@
   "H074",
   "H660"
  ],
- "signs_only_in_barthel": [
+ "signs_only_in_ceipp": [
   "074",
   "075",
   "280",
-  "660"
+  "660",
+  "661"
  ]
 }

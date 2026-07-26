@@ -24,7 +24,7 @@ import numpy as np
 from collections import Counter
 from common import (load_language, build_lm, load_tablets, glyph_frequencies,
                     syllabify, build_word_lp, make_seg_scorer, make_line_seg,
-                    make_line_logp, phase_A, phase_B, resolve_source)
+                    make_line_logp, phase_A, phase_B, resolve_source, corpus_stamp)
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 ITERS = int(sys.argv[2]) if len(sys.argv) > 2 else 120000
@@ -103,7 +103,7 @@ for g in mapped:
         mapping[g] = {'type': 'logo', 'value': LEXW[role[i]]}
     else:
         mapping[g] = {'type': 'syll', 'value': vocab[sylval[i]]}
-json.dump({'seed': SEED, 'corpus': CORPUS, 'iters': ITERS, 'n_glyph_tokens': n_tok,
+json.dump({'seed': SEED, **corpus_stamp(CORPUS), 'iters': ITERS, 'n_glyph_tokens': n_tok,
            'logp_per_token': float(final_logp / n_tok),
            'n_logograms': sum(1 for x in role if x >= 0),
            'mapping': mapping}, open(OUT, 'w'), indent=1)
