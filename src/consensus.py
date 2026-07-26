@@ -7,12 +7,13 @@ identifiability signal.
 Usage: python consensus.py [RESULTS_DIR]
 """
 import glob, json, os, sys
-from common import load_tablets, glyph_frequencies
+from common import load_tablets, glyph_frequencies, resolve_source
 
 RES = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
     os.path.dirname(__file__), '..', 'results')
+CORPUS = resolve_source(sys.argv[2] if len(sys.argv) > 2 else None)  # or env RR_CORPUS
 
-lines, _ = load_tablets()
+lines, _ = load_tablets(source=CORPUS)
 gfreq = glyph_frequencies(lines)
 order = [g for g, _ in gfreq.most_common(49)]
 
@@ -36,6 +37,12 @@ for g in order:
 
 out = os.path.join(RES, 'consensus_report.txt')
 with open(out, 'w') as f:
+    chain_corpora = sorted({c.get('corpus', 'barthel') for c in chains})
+    f.write(f'corpus (this report): {CORPUS}\n')
+    f.write(f'corpus (in chains):   {", ".join(chain_corpora)}\n')
+    if any(cc != CORPUS for cc in chain_corpora):
+        f.write('WARNING: chain corpus != report corpus; sign order may not match.\n')
+    f.write('\n')
     hdr = 'sign  | ' + ' | '.join(f'seed{c["seed"]:<5}' for c in chains) + ' | agree'
     f.write(hdr + '\n')
     for g, vals, mark in rows:

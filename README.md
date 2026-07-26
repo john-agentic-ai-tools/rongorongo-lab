@@ -51,11 +51,35 @@ src/
   solver_logosyllabic.py   two-phase (anneal + logogram sweep) solver
   control_syllabic.py      cracks a KNOWN syllabic cipher (calibration)
   control_logosyllabic.py  attempts a KNOWN logosyllabic cipher (calibration)
+  compare_corpora.py       Barthel vs Horley difference/discoveries report
 data/
   tablets_simple.json      Barthel transliteration, 13 tablets (via rongopy)
+  horley_map.json          Horley (2021) sign-taxonomy transform over Barthel codes
   rapanui_chants.txt       archaic Rapa Nui chant corpus (via rongopy)
-results/                   chain outputs + consensus report
+results/                   chain outputs + consensus report + corpus_diff
+docs/
+  HORLEY_ACQUISITION.md    plan to acquire Horley 2021 / INSCRIBE 3D data
+  HORLEY_FINDINGS.md       differences + discoveries log, with attribution method
 ```
+
+## Selecting the transliteration (Barthel vs Horley)
+
+Barthel's transliteration embeds contestable sign-merging decisions, and the statistics
+inherit them. The pipeline reads the corpus through one seam, `common.load_tablets`, so
+the source is switchable:
+
+```bash
+python solver_syllabic.py 1                 # Barthel (default)
+RR_CORPUS=horley python solver_syllabic.py 1   # Horley-informed corpus
+python compare_corpora.py                   # writes results/corpus_diff.txt
+```
+
+`horley` loads a standalone `data/tablets_horley.json` if present, otherwise **derives**
+the corpus by applying `data/horley_map.json` (a catalogue of Horley's merge / split /
+ligature decisions over Barthel codes) to the Barthel sequences. Every result JSON records
+which `corpus` produced it. **The shipped `horley_map.json` is seeded with *illustrative
+placeholders*, not verified Horley decisions** — see `data/README_horley.md` and
+`docs/HORLEY_ACQUISITION.md` for the sourcing plan that replaces them.
 
 ## Reproduce
 
@@ -88,8 +112,11 @@ Mamari lunar calendar, lines Ca6–Ca9).
 
 - Swap the language model: an Old Rapa Nui reconstruction, or
   Proto-Eastern-Polynesian, in place of the 19th-century chant corpus.
-- Swap the transliteration: Horley (2021) tracings instead of Barthel;
-  the sign-merging rules materially change the statistics.
+- Swap the transliteration: Horley (2021) tracings instead of Barthel —
+  the sign-merging rules materially change the statistics. **Implemented**
+  as `RR_CORPUS=horley` (see "Selecting the transliteration" above); the
+  encoding is currently seeded with illustrative placeholders pending
+  acquisition of the primary sources (`docs/HORLEY_ACQUISITION.md`).
 - Add parallel-passage constraints (texts H/P/Q share content) as hard
   alignment constraints in the annealer.
 - Replace the trigram LM with a small neural LM; rerun both controls

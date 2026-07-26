@@ -1,0 +1,59 @@
+{
+  "_meta": {
+    "purpose": "Express the difference between Barthel's (1958) sign taxonomy and the Horley (2021) re-tracing as a transform over Barthel codes, so the lab can run its pipeline on a Horley-informed corpus (source='horley') without a full manual re-encoding of every tablet.",
+    "how_it_is_applied": "common.apply_horley() walks each raw Barthel code sequence and rewrites codes per the ops below (precedence: ligatures > splits > merges); unlisted codes pass through unchanged. See data/README_horley.md for the op schema.",
+    "STATUS": "PRELIMINARY / ILLUSTRATIVE. The corpus here (rongopy's tablets_simple.json) already collapses Barthel allographic sub-variants to base 3-digit codes, so the entries below are ILLUSTRATIVE placeholders chosen to exercise each op on codes that actually occur (006, 700, 660, 280, 041, ...). They are NOT verified against Horley's plates and MUST NOT be cited as Horley's decisions. Replace/extend them with groupings read from the primary sources before drawing any conclusion. Workflow: docs/HORLEY_ACQUISITION.md.",
+    "sources_to_verify_against": [
+      "Horley, P. (2021). Rongorongo: Inscribed Objects from Rapa Nui. Vina del Mar: Rapanui Press. ISBN 978-956-9337-58-1. (Revised tracings of the whole corpus.)",
+      "Horley, P. (2005). Allographic Variations and Statistical Analysis of the Rongorongo Script. Rapa Nui Journal 19(2): 107-116.",
+      "Pozdniakov, K. & Pozdniakov, I. (2007). Rapanui Writing and the Rapanui Language: Preliminary Results of a Statistical Analysis. Forum for Anthropology and Culture 3: 3-36. (Argues ~52 basic signs; most Barthel codes are allographs/ligatures.)",
+      "Ferrara, S. et al. (2022). Modelling the Rongorongo tablets: a new transcription of the Echancree tablet. Digital Scholarship in the Humanities 37(2): 497-518. (3D-verified; 212 graphic elements.)",
+      "Guy, J.B.M. (2006) on taxograms (Barthel 200/400) - already handled as TAXOGRAMS in common.py, not here."
+    ],
+    "confidence_levels": {
+      "published": "code-level grouping explicitly stated in a cited source",
+      "preliminary": "inferred from a source's method but not verbatim; verify",
+      "illustrative": "placeholder to exercise the pipeline; NOT a real Horley decision"
+    }
+  },
+
+  "merges": [
+    {
+      "barthel": ["660", "661"],
+      "horley": "H660",
+      "confidence": "illustrative",
+      "source": "placeholder; cf. Pozdniakov & Pozdniakov 2007 allograph-reduction method",
+      "note": "660 occurs; 661 may not - merge only fires on codes actually present. Verify whether Horley treats these as one sign."
+    },
+    {
+      "barthel": ["074", "075"],
+      "horley": "H074",
+      "confidence": "illustrative",
+      "source": "placeholder; cf. Horley 2005 allographic variation",
+      "note": "Illustrative allograph collapse. Replace with a verified grouping from Horley 2021."
+    }
+  ],
+
+  "splits": [
+    {
+      "barthel": "006",
+      "cases": [
+        { "prev_in": ["003", "003"], "horley": "H006a" }
+      ],
+      "default": "006",
+      "confidence": "illustrative",
+      "source": "placeholder; demonstrates context-dependent splitting where Barthel merged two readings",
+      "note": "Barthel 006 is the single most frequent code; a real Horley split of it (if any) would materially move the statistics. This placeholder relabels 006 to H006a only after 003, to demonstrate the mechanism. NOT a claim."
+    }
+  ],
+
+  "ligatures": [
+    {
+      "barthel": "280",
+      "horley": ["200", "010"],
+      "confidence": "illustrative",
+      "source": "placeholder; cf. Barthel/Pozdniakov treatment of compound signs as fusions",
+      "note": "Illustrative decomposition of a compound code into components. Barthel's higher/compound numbers are widely held to encode ligatures; the exact components must be read from the plates. Note the emitted 200 is a taxogram and will be stripped downstream."
+    }
+  ]
+}

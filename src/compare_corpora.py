@@ -1,0 +1,173 @@
+"""Document, in detail, how the Horley-informed corpus differs from Barthel.
+
+Loads both transliterations through the same `common.load_tablets` seam and writes
+`results/corpus_diff.txt` (human) and `results/corpus_diff.json` (machine). This is the
+"differences and new discoveries" deliverable: it is *generated*, so it can never drift
+from the actual encodings, and it stamps the source/confidence of every affected code so
+preliminary map entries can never be mistaken for findings.
+
+Usage: python compare_corpora.py [RESULTS_DIR]
+
+Reported quantities
+-------------------
+* sign-inventory size under each encoding, and the map's merge/split/ligature counts;
+* per-tablet token-count deltas;
+* unigram frequency + rank shifts for the most frequent signs;
+* Shannon unicity distance recomputed under each inventory (unigram approximation -- see
+  note in output; the solver pipeline's trigram LM implies a *shorter* unicity distance,
+  so this is a conservative upper bound), and corpus_length / unicity as the "x unicity
+  distance" figure the README cites.
+"""
+import json, math, os, sys
+from collections import Counter
+from common import load_tablets, glyph_frequencies, load_horley_map, DATA
+
+RES = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
+    os.path.dirname(__file__), '..', 'results')
+
+
+def unigram_entropy_bits(freq):
+    """Shannon entropy (bits/sign) of a sign-unigram distribution."""
+    n = sum(freq.values())
+    return -sum((c / n) * math.log2(c / n) for c in freq.values())
+
+
+def unicity(freq):
+    """Unicity distance (in signs) for a bijective sign->syllable substitution, unigram
+    approximation. H(K)=log2(n!); redundancy D = log2(n) - H1; U = H(K)/D. Returns
+    (n, H_key_bits, H1_bits, D_bits_per_sign, U_signs, tokens, tokens_over_U)."""
+    n = len(freq)
+    tokens = sum(freq.values())
+    h_key = math.lgamma(n + 1) / math.log(2)          # log2(n!)
+    h1 = unigram_entropy_bits(freq)
+    d = math.log2(n) - h1                              # per-sign redundancy
+    u = h_key / d if d > 0 else float('inf')
+    return n, h_key, h1, d, u, tokens, (tokens / u if u else float('inf'))
+
+
+def affected_codes(hmap):
+    """Flatten the map into (code, op, horley, source, confidence, note) rows."""
+    rows = []
+    for e in hmap.get('merges', []):
+        for c in e['barthel']:
+            rows.append((c, 'merge', e['horley'], e.get('source', ''),
+                         e.get('confidence', ''), e.get('note', '')))
+    for e in hmap.get('splits', []):
+        tgt = 'context->' + '/'.join(
+            [cs['horley'] for cs in e.get('cases', [])] + [e.get('default', '')])
+        rows.append((e['barthel'], 'split', tgt, e.get('source', ''),
+                     e.get('confidence', ''), e.get('note', '')))
+    for e in hmap.get('ligatures', []):
+        rows.append((e['barthel'], 'ligature', '+'.join(e['horley']),
+                     e.get('source', ''), e.get('confidence', ''), e.get('note', '')))
+    return rows
+
+
+def per_tablet_tokens(source):
+    lines, names = load_tablets(source=source)
+    return Counter({nm: len(l) for nm, l in zip(names, lines)}), lines
+
+
+def main():
+    hmap = load_horley_map()
+    rows = affected_codes(hmap)
+
+    b_tok, b_lines = per_tablet_tokens('barthel')
+    h_tok, h_lines = per_tablet_tokens('horley')
+    bf, hf = glyph_frequencies(b_lines), glyph_frequencies(h_lines)
+
+    b_rank = {g: i for i, (g, _) in enumerate(bf.most_common(), 1)}
+    h_rank = {g: i for i, (g, _) in enumerate(hf.most_common(), 1)}
+
+    bu = unicity(bf)
+    hu = unicity(hf)
+
+    # --- machine-readable ---
+    payload = {
+        'inventory': {'barthel': len(bf), 'horley': len(hf), 'delta': len(hf) - len(bf)},
+        'tokens': {'barthel': sum(bf.values()), 'horley': sum(hf.values())},
+        'ops': {k: len(hmap.get(k, [])) for k in ('merges', 'splits', 'ligatures')},
+        'unicity': {
+            'barthel': {'n': bu[0], 'H_key_bits': bu[1], 'H1_bits': bu[2],
+                        'redundancy_bits': bu[3], 'U_signs': bu[4],
+                        'tokens_over_U': bu[6]},
+            'horley': {'n': hu[0], 'H_key_bits': hu[1], 'H1_bits': hu[2],
+                       'redundancy_bits': hu[3], 'U_signs': hu[4],
+                       'tokens_over_U': hu[6]},
+        },
+        'affected_codes': [
+            {'barthel': c, 'op': op, 'horley': tgt, 'source': src,
+             'confidence': conf, 'note': note}
+            for (c, op, tgt, src, conf, note) in rows],
+        'signs_only_in_horley': sorted(set(hf) - set(bf)),
+        'signs_only_in_barthel': sorted(set(bf) - set(hf)),
+    }
+    os.makedirs(RES, exist_ok=True)
+    with open(os.path.join(RES, 'corpus_diff.json'), 'w', encoding='utf-8') as f:
+        json.dump(payload, f, indent=1, ensure_ascii=False)
+
+    # --- human-readable ---
+    L = []
+    L.append('=== Barthel vs Horley corpus difference report ===')
+    L.append('(generated by compare_corpora.py; do not edit by hand)\n')
+    L.append(f'Sign inventory : barthel {len(bf):4d}   horley {len(hf):4d}   '
+             f'delta {len(hf)-len(bf):+d}')
+    L.append(f'Total tokens   : barthel {sum(bf.values()):5d}   '
+             f'horley {sum(hf.values()):5d}')
+    L.append(f'Map ops        : {len(hmap.get("merges",[]))} merges, '
+             f'{len(hmap.get("splits",[]))} splits, '
+             f'{len(hmap.get("ligatures",[]))} ligatures\n')
+
+    L.append('Unicity distance (unigram approximation; trigram LM implies shorter U):')
+    L.append('  corpus  | n_signs | H(key) bits |  H1 b/sign | redund. | U (signs) | tokens/U')
+    for name, u in (('barthel', bu), ('horley', hu)):
+        L.append(f'  {name:7s} | {u[0]:7d} | {u[1]:11.0f} | {u[2]:9.3f} | '
+                 f'{u[3]:7.3f} | {u[4]:9.1f} | {u[6]:7.1f}x')
+    L.append('  (tokens/U is the README\'s "x unicity distance" figure: higher = more'
+             ' over-determined.)\n')
+
+    L.append('Signs only in horley : ' + (', '.join(payload['signs_only_in_horley']) or '-'))
+    L.append('Signs only in barthel: ' + (', '.join(payload['signs_only_in_barthel']) or '-') + '\n')
+
+    L.append('Affected Barthel codes (op | -> horley | confidence | source):')
+    if not rows:
+        L.append('  (none - horley_map.json is empty; horley corpus == barthel)')
+    for (c, op, tgt, src, conf, note) in rows:
+        present = ' ' if c in bf else '*'  # * = code not in corpus, op is a no-op here
+        L.append(f'  {present}{c:>5s} {op:9s} -> {tgt:14s} [{conf}] {src}')
+        if note:
+            L.append(f'         note: {note}')
+    L.append('  (* = code absent from this corpus, so the op does not fire.)\n')
+
+    # rank shifts among the most frequent Barthel signs
+    L.append('Top-20 Barthel signs: frequency and rank shift under Horley')
+    L.append('  sign | barthel f (rank) | horley f (rank) | note')
+    for g, c in bf.most_common(20):
+        hr = h_rank.get(g)
+        hc = hf.get(g, 0)
+        tag = '' if g in hf else 'REMOVED (merged/split/decomposed)'
+        rk = f'{hr}' if hr else '-'
+        L.append(f'  {g:>5s} | {c:6d} ({b_rank[g]:>3}) | {hc:6d} ({rk:>3}) | {tag}')
+
+    # largest per-tablet token deltas
+    deltas = sorted(((nm, h_tok.get(nm, 0) - b_tok.get(nm, 0))
+                     for nm in set(b_tok) | set(h_tok)),
+                    key=lambda x: -abs(x[1]))
+    changed = [d for d in deltas if d[1]]
+    L.append('\nPer-line token deltas (horley - barthel), nonzero only:')
+    if not changed:
+        L.append('  (none - ligature/split ops net to zero tokens on every line)')
+    for nm, d in changed[:20]:
+        L.append(f'  {nm:8s} {d:+d}')
+
+    out = os.path.join(RES, 'corpus_diff.txt')
+    with open(out, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(L) + '\n')
+    print(f'wrote {out}')
+    print(f'wrote {os.path.join(RES, "corpus_diff.json")}')
+    print(f'inventory: barthel {len(bf)} -> horley {len(hf)} ({len(hf)-len(bf):+d}); '
+          f'tokens/U: {bu[6]:.1f}x -> {hu[6]:.1f}x')
+
+
+if __name__ == '__main__':
+    main()

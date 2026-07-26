@@ -1,0 +1,95 @@
+{
+ "inventory": {
+  "barthel": 239,
+  "horley": 238,
+  "delta": -1
+ },
+ "tokens": {
+  "barthel": 11742,
+  "horley": 11742
+ },
+ "ops": {
+  "merges": 2,
+  "splits": 1,
+  "ligatures": 1
+ },
+ "unicity": {
+  "barthel": {
+   "n": 239,
+   "H_key_bits": 1548.7797368351132,
+   "H1_bits": 5.5613369480644,
+   "redundancy_bits": 2.3395298599163485,
+   "U_signs": 662.0046887926837,
+   "tokens_over_U": 17.737034493538424
+  },
+  "horley": {
+   "n": 238,
+   "H_key_bits": 1540.8788700271325,
+   "H1_bits": 5.49660912502706,
+   "redundancy_bits": 2.3982086382808836,
+   "U_signs": 642.512434252462,
+   "tokens_over_U": 18.275132704103004
+  }
+ },
+ "affected_codes": [
+  {
+   "barthel": "660",
+   "op": "merge",
+   "horley": "H660",
+   "source": "placeholder; cf. Pozdniakov & Pozdniakov 2007 allograph-reduction method",
+   "confidence": "illustrative",
+   "note": "660 occurs; 661 may not - merge only fires on codes actually present. Verify whether Horley treats these as one sign."
+  },
+  {
+   "barthel": "661",
+   "op": "merge",
+   "horley": "H660",
+   "source": "placeholder; cf. Pozdniakov & Pozdniakov 2007 allograph-reduction method",
+   "confidence": "illustrative",
+   "note": "660 occurs; 661 may not - merge only fires on codes actually present. Verify whether Horley treats these as one sign."
+  },
+  {
+   "barthel": "074",
+   "op": "merge",
+   "horley": "H074",
+   "source": "placeholder; cf. Horley 2005 allographic variation",
+   "confidence": "illustrative",
+   "note": "Illustrative allograph collapse. Replace with a verified grouping from Horley 2021."
+  },
+  {
+   "barthel": "075",
+   "op": "merge",
+   "horley": "H074",
+   "source": "placeholder; cf. Horley 2005 allographic variation",
+   "confidence": "illustrative",
+   "note": "Illustrative allograph collapse. Replace with a verified grouping from Horley 2021."
+  },
+  {
+   "barthel": "006",
+   "op": "split",
+   "horley": "context->H006a/006",
+   "source": "placeholder; demonstrates context-dependent splitting where Barthel merged two readings",
+   "confidence": "illustrative",
+   "note": "Barthel 006 is the single most frequent code; a real Horley split of it (if any) would materially move the statistics. This placeholder relabels 006 to H006a only after 003, to demonstrate the mechanism. NOT a claim."
+  },
+  {
+   "barthel": "280",
+   "op": "ligature",
+   "horley": "200+010",
+   "source": "placeholder; cf. Barthel/Pozdniakov treatment of compound signs as fusions",
+   "confidence": "illustrative",
+   "note": "Illustrative decomposition of a compound code into components. Barthel's higher/compound numbers are widely held to encode ligatures; the exact components must be read from the plates. Note the emitted 200 is a taxogram and will be stripped downstream."
+  }
+ ],
+ "signs_only_in_horley": [
+  "H006a",
+  "H074",
+  "H660"
+ ],
+ "signs_only_in_barthel": [
+  "074",
+  "075",
+  "280",
+  "660"
+ ]
+}

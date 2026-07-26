@@ -11,6 +11,24 @@ from collections import Counter
 DATA = os.path.join(os.path.dirname(__file__), '..', 'data')
 TAXOGRAMS = {'200', '400', '000'}   # 200/400: suspected taxograms (Guy 2006); 000: lacuna
 
+# Transliteration sources. 'barthel' is the historical default (Barthel 1958 via
+# rongopy); 'horley' derives a re-tracing-informed corpus by applying the sign-taxonomy
+# transform in data/horley_map.json to the Barthel sequences (or, if it exists, loads a
+# directly re-encoded data/tablets_horley.json that supersedes the transform). See
+# docs/HORLEY_ACQUISITION.md and data/README_horley.md.
+CORPORA = {
+    'barthel': 'tablets_simple.json',
+    'horley': 'tablets_horley.json',   # optional standalone re-encoding; see load_tablets
+}
+
+
+def resolve_source(source=None):
+    """Corpus selection: explicit arg > env RR_CORPUS > 'barthel'."""
+    src = (source or os.environ.get('RR_CORPUS') or 'barthel').lower()
+    if src not in CORPORA:
+        raise ValueError(f"unknown corpus {src!r}; choose from {sorted(CORPORA)}")
+    return src
+
 
 def syllabify(word):
     """Rapa Nui (C)V syllables; 'g' = /ng/ in this corpus's orthography."""
@@ -53,14 +71,90 @@ def build_lm(syll_lines, k=0.1, lam=(0.5, 0.35, 0.15)):
     return np.log(P), vocab, sid, BOS, uni
 
 
-def load_tablets(path=None, min_len=3):
-    """Return (lines, names): glyph sequences with taxograms removed."""
-    path = path or os.path.join(DATA, 'tablets_simple.json')
+def load_horley_map(path=None):
+    """Load data/horley_map.json: Horley's (2021) sign-taxonomy decisions expressed as a
+    transform over Barthel codes. Returns a dict with 'merges'/'splits'/'ligatures'
+    lists; a missing file yields an empty (identity) map."""
+    path = path or os.path.join(DATA, 'horley_map.json')
+    if not os.path.exists(path):
+        return {'merges': [], 'splits': [], 'ligatures': []}
+    hmap = json.load(open(path, encoding='utf-8'))
+    for key in ('merges', 'splits', 'ligatures'):
+        hmap.setdefault(key, [])
+    return hmap
+
+
+def apply_horley(seq, hmap):
+    """Apply the Horley transform to one raw Barthel code sequence (list of code
+    strings, taxograms still present) and return the transformed sequence.
+
+    Three op kinds, mutually exclusive per code, checked in this precedence:
+      - ligatures: one Barthel code -> several Horley signs (Barthel fused what Horley
+        reads as distinct signs);
+      - splits:    one Barthel code -> a context-dependent Horley sign (Barthel merged
+        what Horley distinguishes), resolved against the *original* neighbours;
+      - merges:    several Barthel codes -> one Horley sign (Barthel over-split
+        allographs Horley reads as one).
+    Codes named by no op pass through unchanged, so unaffected signs keep identical
+    labels and stay comparable across corpora.
+    """
+    merge_of = {}
+    for e in hmap.get('merges', []):
+        for code in e['barthel']:
+            merge_of[code] = e['horley']
+    ligature_of = {e['barthel']: list(e['horley']) for e in hmap.get('ligatures', [])}
+    split_of = {e['barthel']: e for e in hmap.get('splits', [])}
+
+    out = []
+    for i, code in enumerate(seq):
+        if code in ligature_of:
+            out.extend(ligature_of[code])
+        elif code in split_of:
+            prev = seq[i - 1] if i > 0 else None
+            nxt = seq[i + 1] if i + 1 < len(seq) else None
+            out.append(_resolve_split(split_of[code], prev, nxt))
+        elif code in merge_of:
+            out.append(merge_of[code])
+        else:
+            out.append(code)
+    return out
+
+
+def _resolve_split(entry, prev, nxt):
+    """Pick a Horley sign for a split code from its ordered 'cases' (first match wins),
+    falling back to 'default'. A case may condition on 'prev_in' and/or 'next_in'."""
+    for case in entry.get('cases', []):
+        if 'prev_in' in case and prev not in case['prev_in']:
+            continue
+        if 'next_in' in case and nxt not in case['next_in']:
+            continue
+        return case['horley']
+    return entry['default']
+
+
+def load_tablets(path=None, min_len=3, source=None):
+    """Return (lines, names): sign sequences with taxograms removed.
+
+    source selects the transliteration (see resolve_source / CORPORA). 'barthel' is the
+    exact historical behaviour. 'horley' loads a standalone data/tablets_horley.json if
+    present, otherwise derives the corpus by applying data/horley_map.json to the Barthel
+    sequences. An explicit `path` overrides source selection (used by tests/tools)."""
+    src = resolve_source(source)
+    hmap = None
+    if path is None:
+        fname = CORPORA[src]
+        path = os.path.join(DATA, fname)
+        if src == 'horley' and not os.path.exists(path):
+            path = os.path.join(DATA, CORPORA['barthel'])  # derive from Barthel + map
+            hmap = load_horley_map()
     tablets = json.load(open(path))
     lines, names = [], []
     for tab, tlines in tablets.items():
         for lname, seq in tlines.items():
-            gs = [g for g in seq.split('-') if g and g not in TAXOGRAMS]
+            codes = [g for g in seq.split('-') if g]
+            if hmap is not None:
+                codes = apply_horley(codes, hmap)
+            gs = [g for g in codes if g not in TAXOGRAMS]
             if len(gs) >= min_len:
                 lines.append(gs)
                 names.append(lname)
