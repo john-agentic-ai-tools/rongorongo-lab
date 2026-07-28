@@ -33,6 +33,7 @@ if [ -f ../data/tablets_ceipp.json ]; then
   python3 compare_corpora.py ceipp horley                   # the map's effect, isolated
   python3 compare_corpora.py ceipp ceipp:variants=strip     # allograph-merging sensitivity
   python3 compare_corpora.py ceipp ceipp:groups=fused       # ligature-reading sensitivity
+  python3 compare_echancree.py                              # item D vs the 3D ground truth
 else
   echo "(skipping ceipp comparisons - run 'python3 fetch_ceipp.py' to build that corpus)"
 fi

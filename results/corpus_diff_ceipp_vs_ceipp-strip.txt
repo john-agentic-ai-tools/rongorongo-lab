@@ -39,21 +39,21 @@ Top-20 ceipp signs: frequency and rank shift under ceipp-strip
 Per-line token deltas (ceipp-strip - ceipp), nonzero only (27 of 275 lines):
   Ia08     -3
   Qr04     -3
+  Ab07     -2
+  Ia10     -2
   Ia14     -2
   Pr08     -2
-  Ia10     -2
-  Ab07     -2
-  Pv11     -1
-  Pr06     -1
-  Br05     -1
-  Hv05     -1
-  Bv07     -1
+  Aa01     -1
   Aa02     -1
-  Pv07     -1
   Aa03     -1
-  La01     -1
-  Kv03     -1
-  Pr04     -1
-  Qv02     -1
-  Pr05     -1
+  Ab02     -1
+  Br05     -1
+  Bv07     -1
+  Hr06     -1
+  Hr09     -1
+  Hv05     -1
   Hv10     -1
+  Ia13     -1
+  Kv03     -1
+  La01     -1
+  Pr04     -1

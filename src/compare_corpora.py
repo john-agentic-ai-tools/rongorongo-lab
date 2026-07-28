@@ -27,17 +27,37 @@ Reported quantities
 """
 import json, math, os, sys
 from collections import Counter
-from common import load_tablets, glyph_frequencies, load_horley_map, CORPORA, DATA
+from common import (load_tablets, glyph_frequencies, load_horley_map, CORPORA,
+                    CEIPP_POLICIES)
 
 
 def parse_spec(spec):
-    """'ceipp:variants=strip,groups=fused' -> ('ceipp', {'variants': ..., 'groups': ...})."""
+    """'ceipp:variants=strip,groups=fused' -> ('ceipp', {'variants': ..., 'groups': ...}).
+
+    Only the two C.E.I.P.P. reading policies are accepted. The keys are forwarded to
+    load_tablets as keyword arguments, so an unchecked key would let a command line reach
+    unrelated parameters (`path`, `min_len`) and quietly change what is being compared.
+    """
     name, _, opts = spec.partition(':')
+    name = name.strip().lower()
+    if name not in CORPORA:
+        # Not a corpus spec at all -- most likely a results directory, and on Windows one
+        # that begins 'C:'. Hand it back untouched rather than reading the drive letter as
+        # a corpus and the rest of the path as options.
+        return name, {}
     kw = {}
     for opt in filter(None, opts.split(',')):
         key, _, val = opt.partition('=')
-        kw[key.strip()] = val.strip()
-    return name.strip().lower(), kw
+        key = key.strip()
+        if key not in CEIPP_POLICIES:
+            raise SystemExit(f'unknown option {key!r} in {spec!r}; '
+                             f'choose from {sorted(CEIPP_POLICIES)}')
+        val = val.strip()
+        if val not in CEIPP_POLICIES[key]:
+            raise SystemExit(f'unknown value {val!r} for {key!r}; '
+                             f'choose from {list(CEIPP_POLICIES[key])}')
+        kw[key] = val
+    return name, kw
 
 
 def label(name, kw):
@@ -200,9 +220,12 @@ def main():
         L.append(f'  {g:>7s} | {c:6d} ({b_rank[g]:>4}) | {hc:6d} ({rk:>4}) | {tag}')
 
     # largest per-tablet token deltas
+    # Sort on the line name as well as the delta. Without it the tie order follows set
+    # iteration, which Python randomises per process, so the report churned on every run --
+    # in a file whose whole point is that it can be diffed against the last one.
     deltas = sorted(((nm, h_tok.get(nm, 0) - b_tok.get(nm, 0))
                      for nm in set(b_tok) | set(h_tok)),
-                    key=lambda x: -abs(x[1]))
+                    key=lambda x: (-abs(x[1]), x[0]))
     changed = [d for d in deltas if d[1]]
     L.append(f'\nPer-line token deltas ({b_lab} - {a_lab}), nonzero only '
              f'({len(changed)} of {len(deltas)} lines):')

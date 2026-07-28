@@ -21,7 +21,30 @@
       "Bash(python compare_corpora.py ceipp ceipp:groups=fused)",
       "Bash(python compare_corpora.py ceipp horley)",
       "Bash(mv ../data/tablets_ceipp.json ../data/_hidden.json)",
-      "Bash(python control_syllabic.py 1)"
+      "Bash(python control_syllabic.py 1)",
+      "Bash(python fetch_ceipp.py --offline --refresh)",
+      "Bash(python compare_corpora.py \"ceipp:variants=../../etc/passwd\" ceipp)",
+      "Bash(python compare_corpora.py \"ceipp:path=/etc/passwd\" ceipp)",
+      "Bash(python compare_corpora.py \"ceipp:min_len=999\" ceipp)",
+      "Bash(python -c \"import json;[json.load\\(open\\(p,encoding='utf-8'\\)\\) for p in \\('../data/tablets_echancree.json','../data/horley_map.json','../data/tablets_ceipp.json'\\)];print\\('all JSON parses OK'\\)\")",
+      "Bash(python -m py_compile common.py compare_corpora.py compare_echancree.py fetch_ceipp.py consensus.py solver_syllabic.py solver_logosyllabic.py)",
+      "Bash(bash -n run_all.sh)",
+      "Bash(mkdir -p C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad/mix)",
+      "Bash(python solver_logosyllabic.py 1 2000 C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad/mix/ror_logo_1.json barthel)",
+      "Bash(RR_CORPUS=ceipp python solver_logosyllabic.py 2 2000 C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad/mix/ror_logo_2.json)",
+      "Bash(RR_CEIPP_VARIANTS=strip python solver_logosyllabic.py 3 2000 C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad/mix/ror_logo_3.json ceipp)",
+      "Bash(python consensus.py C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad/mix ceipp)",
+      "Bash(cp ../results/consensus_report.txt C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad/consensus_before.txt)",
+      "Bash(python consensus.py ../results barthel)",
+      "Bash(python compare_corpora.py \"C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad\")",
+      "Bash(python compare_corpora.py C:/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-code-rongorongo-lab/0f1857eb-420f-4280-821f-7f4ea795a795/scratchpad)",
+      "Bash(python compare_corpora.py ../results)",
+      "Bash(python compare_corpora.py \"ceipp:path=x\" ceipp)",
+      "Bash(python compare_corpora.py \"ceipp:variants=bogus\" ceipp)",
+      "Bash(python compare_corpora.py ceipp)",
+      "Bash(python compare_corpora.py barthel horley)",
+      "Read(//c/Users/Admin/code/results/**)",
+      "Bash(python -m py_compile *.py)"
     ]
   }
 }

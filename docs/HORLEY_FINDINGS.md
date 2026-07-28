@@ -106,14 +106,14 @@ claim is made or implied.
 (`data/tablets_echancree.json`) against C.E.I.P.P. item D. Output:
 `results/echancree_vs_ceipp.txt`.
 
-- **7 of 14 lines** have matching graphic-element counts and are comparable position by
-  position; on those, **61 agree, 42 differ**. The other 7 lines disagree on how the incisions
+- **6 of 14 lines** have matching graphic-element counts and are comparable position by
+  position; on those, **50 agree, 38 differ**. The other 8 lines disagree on how the incisions
   are segmented at all — which is itself the sign-merging problem, observed directly.
-- Element totals: INSCRIBE 208 (as parsed from their own printed transcription; they report
+- Element totals: INSCRIBE 209 (as parsed from their own printed transcription; they report
   **212**, so the two want reconciling by hand), C.E.I.P.P. 211.
-- Sorting the 42 disagreements by kind: **4 RECOVERED** (C.E.I.P.P. reads only a lacuna where
-  the 3D model reads signs), **23 CODE** (different sign numbers), **4 ORDER** (same codes,
-  different sequence — the stacking convention), **11 SUFFIX** (same codes, different
+- Sorting the 38 disagreements by kind: **4 RECOVERED** (C.E.I.P.P. reads only a lacuna where
+  the 3D model reads signs), **20 CODE** (different sign numbers), **4 ORDER** (same codes,
+  different sequence — the stacking convention), **10 SUFFIX** (same codes, different
   allographs).
 
 The four RECOVERED positions are the candidate discoveries:
@@ -133,9 +133,13 @@ object rather than about an encoding.
 
 **Bounds on all of the above.** The article marks doubtful readings by underlining, which
 survives neither the publisher HTML nor PDF text extraction, so no element in
-`tablets_echancree.json` can be assumed firm; alternatives (`381/741`) are scored as
-agreement if either reading matches; and the 7 non-comparable lines are excluded, so 42 is a
-floor. 
+`tablets_echancree.json` can be assumed firm. Scoring is deliberately generous — an element
+agrees if *any* of its alternatives (`381/741`) matches, and a parenthesised component is
+tried both present and absent — so 38 is a floor, and the 8 non-comparable lines are excluded
+entirely. Db3 is one of those exclusions: its position 9 is printed as a bare `--` whose
+glyph is lost in both extractions, and it is counted as an indeterminate element rather than
+dropped, because dropping it made the line length coincidentally match C.E.I.P.P. and
+compared everything after it against the wrong position.
 
 **Not yet chased:** whether any recovered incision falls inside a parallel passage (H/P/Q
 share content) — item D has no known parallel, so this needs another 3D-transcribed object.

@@ -18,18 +18,18 @@ the incisions differently, or one of them saw signs the other did not):
   Da8   |        7 |         10 |    +3   <-- segmentation differs
   Db1   |       14 |         15 |    +1   <-- segmentation differs
   Db2   |       13 |         13 |    +0
-  Db3   |       15 |         15 |    +0
+  Db3   |       16 |         15 |    -1   <-- segmentation differs
   Db4   |       15 |         14 |    -1   <-- segmentation differs
   Db5   |       14 |         14 |    +0
   Db6   |       14 |         14 |    +0
-  TOTAL |      208 |        211 |    +3
+  TOTAL |      209 |        211 |    +2
   (INSCRIBE reports 212 graphic elements for the whole tablet; this parse of its own
-   transcription yields 208, so the two counts are themselves worth reconciling by hand.)
+   transcription yields 209, so the two counts are themselves worth reconciling by hand.)
 
-Position-by-position, on the 7 of 14 lines where the element counts match:
-  agree 61   conflict 42
+Position-by-position, on the 6 of 14 lines where the element counts match:
+  agree 50   conflict 38
 
-  by kind: RECOVERED 4   CODE 23   ORDER 4   SUFFIX 11
+  by kind: RECOVERED 4   CODE 20   ORDER 4   SUFFIX 10
   RECOVERED = C.E.I.P.P. reads only lacunae where the 3D model reads signs;
   CODE = different sign numbers; ORDER = same codes, different sequence
   (usually the stacking convention); SUFFIX = same codes, different allographs.
@@ -46,15 +46,12 @@ Disagreements (kind | position | INSCRIBE | C.E.I.P.P.):
   CODE      | Da3.8    | 200.52x.52                   | 200.052x
   CODE      | Da3.11   | 200.52x.69                   | 200.052x
   CODE      | Da3.13   | 200.52x.69                   | 200.052x
-  CODE      | Da4.2    | 371/379(.61)                 | 379.061
   CODE      | Da4.16   | 370.1                        | 360
   CODE      | Db2.1    | 590.56                       | 590
   CODE      | Db2.5    | 82.6.3                       | 081.006.003
   CODE      | Db2.7    | 93f.93f                      | 095f.095f
   CODE      | Db2.12   | 520f                         | 522f
   CODE      | Db2.13   | ***                          | 000!
-  CODE      | Db3.8    | 4.94a/116                    | 004.095?
-  CODE      | Db3.15   | ***                          | 000!
   CODE      | Db5.3    | 200.524f.78                  | 200.524f.077
   CODE      | Db5.8    | 1                            | 015
   CODE      | Db5.12   | 69.108/109                   | 069.000!
@@ -75,13 +72,14 @@ Disagreements (kind | position | INSCRIBE | C.E.I.P.P.):
   SUFFIX    | Da4.9    | 52x.590.52x                  | 052.590.052
   SUFFIX    | Da4.13   | 590.52.s                     | 590.052
   SUFFIX    | Db2.11   | 59.6                         | 059f.006
-  SUFFIX    | Db3.13   | 93                           | 093f
   SUFFIX    | Db5.10   | 40V                          | 040
 
 Caveats that bound every row above:
   * the INSCRIBE transcription underlines doubtful readings; underlining does
     not survive text extraction, so no element here can be assumed firm;
-  * alternatives (381/741) count as agreement if EITHER reading matches;
+  * an element is scored generously: alternatives (381/741) count as agreement
+    if any reading matches, and a parenthesised component is tried both
+    present and absent, so the conflict counts below are conservative;
   * C.E.I.P.P. markers ? (doubtful) and ! (illegible) are ignored when matching;
   * lines whose element counts differ are excluded from the position pass, so
     the conflict count is a floor, not a total.

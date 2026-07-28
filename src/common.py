@@ -148,18 +148,23 @@ def flatten_ceipp(line, variants='keep', groups='atomic'):
     for group in line.split('-'):
         if not group:
             continue
-        signs = [s.strip('?!') for s in _CEIPP_SEP.split(group)]
-        signs = [s for s in signs if s]
-        if not signs:
+        # Split into (sign, separator-that-follows) pairs so a fused label can be rebuilt
+        # with the right punctuation even if some component drops out below.
+        pieces = _CEIPP_SEP.split(group)
+        seps = _CEIPP_SEP.findall(group) + ['']
+        kept = [(s.strip('?!'), sep) for s, sep in zip(pieces, seps) if s.strip('?!')]
+        if not kept:
             continue
         if variants == 'strip':
-            signs = [_CEIPP_BASE.match(s).group(1).zfill(3) for s in signs]
-        if groups == 'fused' and len(signs) > 1:
-            # Keep the original separators so the fused label stays readable and unique.
-            seps = _CEIPP_SEP.findall(group)
-            out.append(''.join(s + sep for s, sep in zip(signs, seps + [''])))
+            kept = [(_CEIPP_BASE.match(s).group(1).zfill(3) if _CEIPP_BASE.match(s) else s,
+                     sep) for s, sep in kept]
+        if groups == 'fused' and len(kept) > 1:
+            # Keep the original separators so the fused label stays readable and unique;
+            # the last component never carries a trailing one.
+            out.append(''.join(s + (sep if i < len(kept) - 1 else '')
+                               for i, (s, sep) in enumerate(kept)))
         else:
-            out.extend(signs)
+            out.extend(s for s, _ in kept)
     return out
 
 

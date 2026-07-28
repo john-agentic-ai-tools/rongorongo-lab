@@ -41,16 +41,16 @@ Per-line token deltas (ceipp-fused - ceipp), nonzero only (266 of 275 lines):
   Ia10     -55
   Ia11     -55
   Ia09     -53
-  Ia14     -52
   Ia08     -52
+  Ia14     -52
   Ia12     -51
   Ia04     -50
   Ia07     -50
   Ia05     -49
   Ia06     -48
   Ia02     -46
-  Ia01     -44
   Ab03     -44
+  Ia01     -44
   Ia03     -42
   Pr03     -40
   Aa07     -39

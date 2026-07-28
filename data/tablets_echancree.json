@@ -17,7 +17,7 @@
   "codes_are": "Barthel's ORIGINAL system, unpadded (1, 60, 700), NOT the C.E.I.P.P. extended system. Zero-fill before comparing with tablets_ceipp.json.",
   "KNOWN_LOSS": "The paper marks doubtful readings by UNDERLINING. Underlining survives neither the HTML nor the PDF text extraction, so it is absent here. Any element in this file may be a doubtful reading in the original; consult the article before treating a single element as settled.",
   "uncertain_transcriptions": [
-   "Db3, between '4.94a/116' and the following '2': the source renders this as '- -' (PDF) / '--' (HTML). It is most likely a bullet element whose glyph was dropped by both text extractions, but it has not been confirmed against the printed page. Recorded verbatim below; do not count on it."
+   "Db3, between '4.94a/116' and the following '2': the source renders this as '- -' (PDF) / '--' (HTML). It is most likely a bullet element whose glyph was dropped by both text extractions, but it has not been confirmed against the printed page. Recorded verbatim below; do not count on it. compare_echancree.py treats it as one INDETERMINATE element rather than as nothing, which correctly excludes Db3 from its position-by-position pass -- resolve this against the printed page to bring the line back into the comparison."
   ]
  },
  "D": {

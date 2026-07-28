@@ -35,8 +35,9 @@ That non-profit condition is not compatible with blanket redistribution under th
 GPL-3.0, so the built corpus is deliberately NOT committed (see .gitignore) -- run this
 script to produce it locally.
 
-Usage: python fetch_ceipp.py [--offline]
-       --offline rebuilds from data/.ceipp_cache/ without hitting the network.
+Usage: python fetch_ceipp.py [--offline | --refresh]
+       --offline rebuilds from data/.ceipp_cache/ without hitting the network;
+       --refresh re-downloads every page, ignoring the cache.
 """
 import html
 import json
@@ -75,27 +76,42 @@ SIGN = re.compile(r'^(\d{1,3})([A-Za-z]*)([?!]?)$')
 LACUNA_RUN = re.compile(r'\((\d+)-(\d+)\)([?!]?)')
 
 
-def fetch(name, offline=False):
-    """Return the raw HTML for one transliteration page, via an on-disk cache.
+def _context():
+    """TLS context used only if the host redirects to HTTPS.
 
-    The site's TLS certificate is long expired, so this speaks plain HTTP and does not
-    upgrade; an unverified context is supplied only as a fallback for redirects.
+    The site's certificate expired years ago, so verification cannot succeed and is turned
+    off. Be clear about what that costs: BASE is plain HTTP to begin with, so this transfer
+    is unauthenticated either way, and anyone able to intercept it could serve a corpus of
+    their choosing. Nothing fetched here is executed -- it is regex-parsed into strings and
+    written as JSON -- so the exposure is to *corrupted data*, not to code execution, and
+    the Mamari assertion in main() is the tripwire for exactly that. If the C.E.I.P.P. ever
+    serves a valid certificate, delete this and let urllib verify normally.
     """
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    return ctx
+
+
+def fetch(name, offline=False, refresh=False):
+    """Return the raw HTML for one transliteration page, via an on-disk cache."""
     os.makedirs(CACHE, exist_ok=True)
     path = os.path.join(CACHE, name + '.html')
-    if os.path.exists(path):
+    if os.path.exists(path) and not refresh:
         return open(path, encoding='latin-1').read()
     if offline:
         raise SystemExit(f'--offline but {path} is not cached; run without --offline first')
-    ctx = ssl._create_unverified_context()
     # The host answers 406 to urllib's default User-Agent.
     req = urllib.request.Request(BASE + name + '.html',
                                  headers={'User-Agent': 'Mozilla/5.0 (rongorongo-lab)'})
-    with urllib.request.urlopen(req, timeout=60, context=ctx) as r:
+    with urllib.request.urlopen(req, timeout=60, context=_context()) as r:
         raw = r.read().decode('latin-1')
     if '404 - PAGE NOT FOUND' in raw:
         raise SystemExit(f'{BASE}{name}.html returned the site 404 page')
-    open(path, 'w', encoding='latin-1').write(raw)
+    tmp = path + '.part'          # write-then-rename: never leave a half page in the cache
+    with open(tmp, 'w', encoding='latin-1') as f:
+        f.write(raw)
+    os.replace(tmp, path)
     return raw
 
 
@@ -159,10 +175,12 @@ def atoms(seq):
 
 
 def main():
-    offline = '--offline' in sys.argv
+    offline, refresh = '--offline' in sys.argv, '--refresh' in sys.argv
+    if offline and refresh:
+        raise SystemExit('--offline and --refresh are mutually exclusive')
     tablets, report = {}, []
     for item, name in ITEMS.items():
-        lines = parse_page(fetch(name, offline))
+        lines = parse_page(fetch(name, offline, refresh))
         if not lines:
             raise SystemExit(f'item {item} ({name}.html): no lines parsed')
         tablets[item] = lines

@@ -54,10 +54,10 @@ Top-20 barthel signs: frequency and rank shift under horley
 
 Per-line token deltas (horley - barthel), nonzero only (475 of 478 lines):
   Ia13     +192
-  Ia10     +186
   Ia09     +186
-  Ia08     +176
+  Ia10     +186
   Ia01     +176
+  Ia08     +176
   Ia11     +176
   Ia07     +175
   Ia02     +174
@@ -66,8 +66,8 @@ Per-line token deltas (horley - barthel), nonzero only (475 of 478 lines):
   Ia04     +163
   Ia05     +162
   Aa7      -155
-  Ia12     +151
   Ia03     +151
+  Ia12     +151
   Ab6      -139
   Ab3      -138
   Ab2      -137
