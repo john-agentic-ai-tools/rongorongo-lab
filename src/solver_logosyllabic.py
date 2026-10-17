@@ -24,11 +24,12 @@ import numpy as np
 from collections import Counter
 from common import (load_language, build_lm, load_tablets, glyph_frequencies,
                     syllabify, build_word_lp, make_seg_scorer, make_line_seg,
-                    make_line_logp, phase_A, phase_B)
+                    make_line_logp, phase_A, phase_B, resolve_source, corpus_stamp)
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 ITERS = int(sys.argv[2]) if len(sys.argv) > 2 else 120000
 OUT = sys.argv[3] if len(sys.argv) > 3 else f'ror_logo_{SEED}.json'
+CORPUS = resolve_source(sys.argv[4] if len(sys.argv) > 4 else None)  # or env RR_CORPUS
 N_MAP = 49
 LOGO_PENALTY = 8.0
 UNK_COST = -6.0
@@ -60,7 +61,7 @@ WORD_LP = build_word_lp(wc, sid, MAX_WLEN)
 seg_score = make_seg_scorer(WORD_LP, UNK_COST, MAX_WLEN)
 
 # tablets: mapped glyphs -> [0, N_MAP), everything else -> -1 (unmapped)
-lines, names = load_tablets()
+lines, names = load_tablets(source=CORPUS)
 gfreq = glyph_frequencies(lines)
 mapped = [g for g, _ in gfreq.most_common(N_MAP)]
 gidx = {g: i for i, g in enumerate(mapped)}
@@ -102,9 +103,9 @@ for g in mapped:
         mapping[g] = {'type': 'logo', 'value': LEXW[role[i]]}
     else:
         mapping[g] = {'type': 'syll', 'value': vocab[sylval[i]]}
-json.dump({'seed': SEED, 'iters': ITERS, 'n_glyph_tokens': n_tok,
+json.dump({'seed': SEED, **corpus_stamp(CORPUS), 'iters': ITERS, 'n_glyph_tokens': n_tok,
            'logp_per_token': float(final_logp / n_tok),
            'n_logograms': sum(1 for x in role if x >= 0),
            'mapping': mapping}, open(OUT, 'w'), indent=1)
-print(f"seed {SEED}: logp/token={final_logp/n_tok:.3f}, "
+print(f"[{CORPUS}] seed {SEED}: logp/token={final_logp/n_tok:.3f}, "
       f"logograms={sum(1 for x in role if x >= 0)}")

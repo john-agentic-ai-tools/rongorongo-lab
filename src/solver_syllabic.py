@@ -14,11 +14,13 @@ Usage: python solver_syllabic.py SEED [ITERS] [OUT.json]
 """
 import json, random, sys
 import numpy as np
-from common import load_language, build_lm, load_tablets, glyph_frequencies, anneal
+from common import (load_language, build_lm, load_tablets, glyph_frequencies,
+                    anneal, resolve_source, corpus_stamp)
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 0
 ITERS = int(sys.argv[2]) if len(sys.argv) > 2 else 150000
 OUT = sys.argv[3] if len(sys.argv) > 3 else f'syllabic_chain_{SEED}.json'
+CORPUS = resolve_source(sys.argv[4] if len(sys.argv) > 4 else None)  # or env RR_CORPUS
 
 rng = random.Random(SEED)
 
@@ -26,7 +28,7 @@ syll_lines, _ = load_language()
 LOGP, vocab, sid, BOS, uni = build_lm(syll_lines)
 S = len(vocab)
 
-lines, names = load_tablets()
+lines, names = load_tablets(source=CORPUS)
 gfreq = glyph_frequencies(lines)
 N_MAP = min(S, 49)
 mapped = [g for g, _ in gfreq.most_common(N_MAP)]
@@ -52,6 +54,6 @@ for i in range(N_MAP):
 best, bm = anneal(score, m, list(range(N_MAP)), ITERS, rng)
 
 mapping = {g: vocab[bm[gidx[g]]] for g in mapped}
-json.dump({'seed': SEED, 'score': float(best), 'n_positions': int(len(A)),
-           'mapping': mapping}, open(OUT, 'w'), indent=1)
-print(f"seed {SEED}: logp/sign = {best/len(A):.3f}")
+json.dump({'seed': SEED, **corpus_stamp(CORPUS), 'score': float(best),
+           'n_positions': int(len(A)), 'mapping': mapping}, open(OUT, 'w'), indent=1)
+print(f"[{CORPUS}] seed {SEED}: logp/sign = {best/len(A):.3f}")

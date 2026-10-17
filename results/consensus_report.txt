@@ -1,3 +1,6 @@
+corpus (this report): barthel
+corpus (in chains):   barthel
+
 sign  | seed1     | seed2     | seed3     | agree
  006  | s:a       | s:e       | s:a       | 2/3
  003  | s:i       | s:i       | s:i       | FULL
